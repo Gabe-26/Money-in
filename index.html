@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Work Ticket System — Amendola Industries</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f0d;--s1:#181816;--s2:#202020;--s3:#2a2a28;
+  --b1:rgba(255,255,255,0.07);--b2:rgba(255,255,255,0.12);
+  --t1:#e8e7e3;--t2:#8a8980;--t3:#5a5956;
+  --gr:#1D9E75;--gr2:#24c48f;--gr-bg:rgba(29,158,117,0.1);
+  --am:#EF9F27;--am-bg:rgba(239,159,39,0.1);--am-t:#f0a830;
+  --bl:#2d7dd2;--bl-bg:rgba(45,125,210,0.1);--bl-t:#5baaf0;
+  --rd-bg:rgba(220,60,60,0.1);--rd-t:#f07070;
+  --gate:#9b59b6;--gate-bg:rgba(155,89,182,0.1);--gate-t:#c39bd3;
+  --font:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh}
+
+/* NAV */
+nav{background:#0a0a09;padding:0 2rem;display:flex;align-items:center;height:48px;border-bottom:1px solid var(--b1);gap:0;position:sticky;top:0;z-index:100}
+.logo{font-family:var(--mono);font-size:13px;font-weight:600;color:#fff;margin-right:2rem;white-space:nowrap;letter-spacing:0.02em}
+.logo span{color:var(--gr2)}
+.ntab{font-size:12px;font-weight:500;padding:0 14px;height:48px;display:flex;align-items:center;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;border-top:none;border-left:none;border-right:none;background:none;font-family:var(--font);transition:color .15s,border-color .15s;letter-spacing:0.03em;text-transform:uppercase}
+.ntab:hover{color:var(--t1)}
+.ntab.on{color:var(--gr2);border-bottom-color:var(--gr2)}
+.nbadge{margin-left:auto;font-size:11px;font-family:var(--mono);padding:2px 8px;border-radius:4px;background:var(--gr-bg);color:var(--gr2);border:1px solid rgba(29,158,117,0.2)}
+
+/* LAYOUT */
+.wrap{max-width:1280px;margin:0 auto;padding:2rem 1.5rem}
+
+/* DROPZONE */
+#dropzone{border:1px dashed var(--b2);border-radius:8px;background:var(--s1);padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:.2s;margin-bottom:1.2rem;position:relative}
+#dropzone.over{border-color:var(--gr);background:var(--gr-bg)}
+#dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dicon{width:44px;height:44px;margin:0 auto 1rem;background:var(--gr-bg);border-radius:6px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(29,158,117,0.2)}
+.dicon svg{width:20px;height:20px;stroke:var(--gr2);fill:none;stroke-width:1.8}
+.dtitle{font-size:15px;font-weight:600;margin-bottom:5px;color:var(--t1)}
+.dsub{font-size:12px;color:var(--t3);font-family:var(--mono)}
+.dsub b{color:var(--gr2)}
+
+/* STATUS */
+#statusbar{font-size:12px;font-family:var(--mono);color:var(--t2);padding:9px 14px;background:var(--s1);border:1px solid var(--b1);border-radius:6px;margin-bottom:1rem;display:none;align-items:center;gap:10px}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--gr);flex-shrink:0}
+.sdot.spin{background:var(--am);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* META */
+#metabar{display:none;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.mc{background:var(--s1);border:1px solid var(--b1);border-radius:5px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--t3)}
+.mc b{color:var(--t1);font-weight:600}
+
+/* SUMMARY */
+#psummary{display:none;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:1.2rem}
+.sc{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:12px 14px}
+.scl{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.scv{font-size:20px;font-weight:600;font-family:var(--mono);color:var(--t1)}
+.scv.g{color:var(--gr2)}.scv.w{color:var(--am-t)}.scv.m{color:var(--bl-t)}.scv.gt{color:var(--gate-t)}
+
+/* CONTROLS */
+#pcontrols{display:none;align-items:center;gap:7px;margin-bottom:10px;flex-wrap:wrap}
+#psearch{flex:1;min-width:220px;padding:7px 12px;border:1px solid var(--b2);border-radius:6px;background:var(--s1);color:var(--t1);font-size:12px;font-family:var(--mono)}
+#psearch:focus{outline:none;border-color:var(--gr)}
+#psearch::placeholder{color:var(--t3)}
+.cright{display:flex;gap:5px;margin-left:auto;flex-wrap:wrap}
+.btn{font-size:11px;font-family:var(--mono);padding:5px 11px;border-radius:5px;border:1px solid var(--b2);background:var(--s1);color:var(--t3);cursor:pointer;white-space:nowrap;transition:all .15s;letter-spacing:0.02em}
+.btn:hover{background:var(--s2);color:var(--t1)}
+.btn.so{background:var(--gr-bg);color:var(--gr2);border-color:rgba(29,158,117,0.3)}
+.btn.inv{background:var(--am-bg);color:var(--am-t);border-color:rgba(239,159,39,0.3)}
+.btn.wd{background:var(--am-bg);color:var(--am-t);border-color:rgba(239,159,39,0.3)}
+.btn.mt{background:var(--bl-bg);color:var(--bl-t);border-color:rgba(45,125,210,0.3)}
+.btn.gt{background:var(--gate-bg);color:var(--gate-t);border-color:rgba(155,89,182,0.3)}
+.btn.oth{background:var(--s2);color:var(--t2);border-color:var(--b2)}
+.btn.save{background:var(--gr);color:#fff;border-color:var(--gr);font-weight:600;padding:5px 16px}
+.btn.save:hover{background:#19b882}
+.btn.save:disabled{opacity:.5;cursor:default}
+.btn.export{border-color:var(--b2)}
+
+/* TABLE */
+#tw{overflow-x:auto;border:1px solid var(--b1);border-radius:8px;background:var(--s1)}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:960px}
+thead th{background:var(--s2);padding:9px 12px;text-align:left;font-weight:600;font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--b1);white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{color:var(--t1)}
+thead th.srt{color:var(--gr2)}
+tbody tr{border-bottom:1px solid var(--b1)}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--s2)}
+tbody td{padding:8px 12px;vertical-align:middle}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;font-size:10px;font-family:var(--mono);font-weight:600;padding:2px 7px;border-radius:4px;letter-spacing:0.03em}
+.pill-so{background:var(--gr-bg);color:var(--gr2);border:1px solid rgba(29,158,117,0.2)}
+.pill-inv{background:var(--am-bg);color:var(--am-t);border:1px solid rgba(239,159,39,0.2)}
+.pill-wt{background:var(--s2);color:var(--t2);border:1px solid var(--b1)}
+.pill-wood{background:var(--am-bg);color:var(--am-t);border:1px solid rgba(239,159,39,0.2)}
+.pill-metal{background:var(--bl-bg);color:var(--bl-t);border:1px solid rgba(45,125,210,0.2)}
+.pill-gate{background:var(--gate-bg);color:var(--gate-t);border:1px solid rgba(155,89,182,0.2)}
+.pill-other{background:var(--s2);color:var(--t3);border:1px solid var(--b1)}
+.ccode{font-family:var(--mono);font-size:11px;color:var(--gr2);font-weight:600}
+.cdesc{font-size:11px;color:var(--t2);max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cnum{font-family:var(--mono);font-size:11px;color:var(--t1)}
+.cext{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--gr2)}
+.cdate{font-family:var(--mono);font-size:11px;color:var(--t2);white-space:nowrap}
+
+/* PAGINATION */
+#ppg{display:none;align-items:center;justify-content:space-between;margin-top:10px;font-size:11px;font-family:var(--mono);color:var(--t3)}
+.pbtn{padding:4px 11px;border-radius:5px;border:1px solid var(--b2);background:var(--s1);color:var(--t1);cursor:pointer;font-size:11px;font-family:var(--mono)}
+.pbtn:hover{background:var(--s2)}
+.pbtn:disabled{opacity:.35;cursor:default}
+
+/* DATABASE SCREEN */
+.dbwrap{max-width:1280px;margin:0 auto;padding:2rem 1.5rem}
+#db-empty-msg{text-align:center;padding:5rem 2rem;color:var(--t2)}
+#db-empty-msg svg{width:44px;height:44px;stroke:var(--t3);fill:none;stroke-width:1.2;margin:0 auto 1rem;display:block}
+#db-empty-msg h3{font-size:16px;font-weight:600;color:var(--t1);margin-bottom:6px}
+#db-empty-msg p{font-size:12px;font-family:var(--mono)}
+.dbhead{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
+.dbhead h2{font-size:17px;font-weight:600;margin-bottom:3px}
+.dbhead p{font-size:11px;font-family:var(--mono);color:var(--t3)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.2rem}
+.kpi{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:14px 16px}
+.kpi-l{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.kpi-v{font-size:24px;font-weight:600;font-family:var(--mono);color:var(--t1)}
+.kpi-s{font-size:11px;font-family:var(--mono);color:var(--t3);margin-top:3px}
+.kpi-v.g{color:var(--gr2)}.kpi-v.w{color:var(--am-t)}.kpi-v.b{color:var(--bl-t)}.kpi-v.gt{color:var(--gate-t)}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.2rem}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:16px 18px}
+.card.full{grid-column:1/-1}
+.card-t{font-size:12px;font-weight:600;font-family:var(--mono);margin-bottom:2px;color:var(--t1)}
+.card-s{font-size:10px;font-family:var(--mono);color:var(--t3);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.05em}
+.chwrap{position:relative;height:240px}
+.chwrap.tall{height:300px}
+.excard{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:16px 18px;margin-bottom:12px}
+.excard-t{font-size:12px;font-weight:600;font-family:var(--mono);margin-bottom:10px;color:var(--t1)}
+.exctrls{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.exsel{padding:6px 10px;border:1px solid var(--b2);border-radius:5px;background:var(--s2);color:var(--t1);font-size:11px;font-family:var(--mono);flex:1;min-width:160px}
+.exsel:focus{outline:none;border-color:var(--gr)}
+.cstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.cstat{background:var(--s2);border-radius:6px;padding:10px 12px}
+.cstat-l{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.cstat-v{font-size:17px;font-weight:600;font-family:var(--mono);color:var(--t1)}
+.ttable{width:100%;border-collapse:collapse;font-size:12px}
+.ttable th{text-align:left;font-size:10px;font-weight:600;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.06em;padding:7px 10px;border-bottom:1px solid var(--b1)}
+.ttable td{padding:8px 10px;border-bottom:1px solid var(--b1);vertical-align:middle}
+.ttable tr:last-child td{border-bottom:none}
+.ttable tr:hover td{background:var(--s2)}
+.rnk{display:inline-flex;width:20px;height:20px;border-radius:3px;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--mono);background:var(--s2);color:var(--t2)}
+.rnk.g{background:rgba(239,159,39,.15);color:var(--am-t)}
+.rnk.s{background:rgba(160,160,160,.12);color:#b0b0b0}
+.rnk.b{background:rgba(180,100,40,.12);color:#cd7f32}
+.barbg{background:var(--s2);border-radius:2px;height:4px;width:100%}
+.barfill{height:4px;border-radius:2px;background:var(--gr);transition:width .5s}
+.barfill.w{background:var(--am)}.barfill.m{background:var(--bl-t)}.barfill.gt{background:var(--gate)}
+.blist{display:flex;flex-direction:column;gap:7px}
+.bitem{background:var(--s2);border-radius:6px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:12px;border:1px solid var(--b1)}
+.bitem-l{display:flex;align-items:center;gap:10px}
+.bdot{width:6px;height:6px;border-radius:50%;background:var(--gr);flex-shrink:0}
+.bname{font-weight:600;font-family:var(--mono);font-size:11px}
+.bdate{font-size:11px;font-family:var(--mono);color:var(--t3);margin-top:1px}
+.bitem-r{display:flex;align-items:center;gap:14px}
+.bcost{font-weight:600;font-family:var(--mono);color:var(--gr2);font-size:12px}
+.delbtn{font-size:10px;font-family:var(--mono);padding:3px 8px;border-radius:4px;border:1px solid rgba(220,60,60,.25);background:transparent;color:var(--rd-t);cursor:pointer}
+.delbtn:hover{background:var(--rd-bg)}
+.clrbtn{font-size:11px;font-family:var(--mono);padding:5px 11px;border-radius:5px;border:1px solid rgba(220,60,60,.25);background:transparent;color:var(--rd-t);cursor:pointer}
+.clrbtn:hover{background:var(--rd-bg)}
+.tworel{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--s2);border:1px solid var(--b2);border-radius:7px;padding:11px 16px;font-size:12px;font-family:var(--mono);color:var(--t1);z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:320px}
+#toast.show{opacity:1}
+#toast.ok{border-color:rgba(29,158,117,.4);color:var(--gr2)}
+#toast.err{border-color:rgba(220,60,60,.4);color:var(--rd-t)}
+
+/* LOADING OVERLAY */
+#loader{position:fixed;inset:0;background:rgba(15,15,13,.85);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+#loader.show{display:flex}
+.spin-ring{width:36px;height:36px;border:2px solid var(--b2);border-top-color:var(--gr2);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-txt{font-family:var(--mono);font-size:12px;color:var(--t2)}
+
+@media(max-width:800px){.cgrid,.tworel,.kpis{grid-template-columns:1fr}#psummary{grid-template-columns:repeat(2,1fr)}.card.full{grid-column:1}}
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="spin-ring"></div><div class="loader-txt" id="loader-txt">Loading…</div></div>
+<div id="toast"></div>
+
+<nav>
+  <span class="logo">AII <span>/ Work Tickets</span></span>
+  <button class="ntab on" id="tab-import" onclick="goTo('import')">Import PDF</button>
+  <button class="ntab"    id="tab-db"     onclick="goTo('db')">Database</button>
+  <span class="nbadge" id="nbadge">—</span>
+</nav>
+
+<!-- IMPORT SCREEN -->
+<div id="scr-import">
+<div class="wrap">
+  <div id="dropzone">
+    <input type="file" id="fi" accept=".pdf"/>
+    <div class="dicon"><svg viewBox="0 0 24 24"><path d="M12 15V3m0 0L8 7m4-4 4 4"/><rect x="2" y="17" width="20" height="4" rx="2"/></svg></div>
+    <p class="dtitle">Drop Work Ticket Register PDF</p>
+    <p class="dsub">Extracts <b>Date · S/O · Traveler · Dept · Item Code · Description · Qty · Unit Cost · Extended Cost</b></p>
+  </div>
+  <div id="statusbar"><div class="sdot" id="sdot"></div><span id="stxt"></span></div>
+  <div id="metabar">
+    <div class="mc">Batch <b id="mb">—</b></div>
+    <div class="mc">Register <b id="mr">—</b></div>
+    <div class="mc">Trans # <b id="mt">—</b></div>
+    <div class="mc">Journal Date <b id="md">—</b></div>
+    <div class="mc">Pages <b id="mp">—</b></div>
+  </div>
+  <div id="psummary">
+    <div class="sc"><div class="scl">Work Tickets</div><div class="scv" id="sv1">—</div></div>
+    <div class="sc"><div class="scl">Sales Orders</div><div class="scv" id="sv2">—</div></div>
+    <div class="sc"><div class="scl">Total Qty</div><div class="scv" id="sv3">—</div></div>
+    <div class="sc"><div class="scl">Wood Cost</div><div class="scv w" id="sv4">—</div></div>
+    <div class="sc"><div class="scl">Metal Cost</div><div class="scv m" id="sv5">—</div></div>
+    <div class="sc"><div class="scl">Gate Cost</div><div class="scv gt" id="sv6">—</div></div>
+  </div>
+  <div id="pcontrols">
+    <input id="psearch" placeholder="search date, s/o, traveler, code, description…"/>
+    <div class="cright">
+      <button class="btn so"  id="bso"   onclick="tog('so')">S/O</button>
+      <button class="btn"     id="binv"  onclick="tog('inv')">Inventory</button>
+      <button class="btn wd"  id="bwd"   onclick="tog('wd')">Wood</button>
+      <button class="btn mt"  id="bmt"   onclick="tog('mt')">Metal</button>
+      <button class="btn gt"  id="bgt"   onclick="tog('gate')">Gate</button>
+      <button class="btn"     id="bunk"  onclick="tog('unk')">Other</button>
+      <button class="btn export" onclick="dlCSV()">Export CSV</button>
+      <button class="btn save" id="savebtn" onclick="saveToDB()" style="display:none">Save to Database →</button>
+    </div>
+  </div>
+  <div id="tw">
+    <table>
+      <thead><tr>
+        <th onclick="srt('date')"     id="hdate">Date</th>
+        <th onclick="srt('so')"       id="hso">S/O #</th>
+        <th onclick="srt('wt')"       id="hwt">Traveler</th>
+        <th onclick="srt('material')" id="hmat">Dept</th>
+        <th onclick="srt('code')"     id="hcode">Item Code</th>
+        <th onclick="srt('desc')"     id="hdesc">Description</th>
+        <th onclick="srt('qty')"      id="hqty">Qty</th>
+        <th onclick="srt('unit')"     id="hunit">Unit Cost</th>
+        <th onclick="srt('ext')"      id="hext">Ext. Cost</th>
+      </tr></thead>
+      <tbody id="tbody">
+        <tr><td colspan="9" style="padding:3rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:12px">Drop a Work Ticket Register PDF above to populate the table</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div id="ppg">
+    <span id="pginfo"></span>
+    <div style="display:flex;gap:5px">
+      <button class="pbtn" id="pprev" onclick="goPage(-1)" disabled>← Prev</button>
+      <button class="pbtn" id="pnext" onclick="goPage(1)">Next →</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- DATABASE SCREEN -->
+<div id="scr-db" style="display:none">
+<div class="dbwrap">
+  <div id="db-empty-msg">
+    <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+    <h3>No data yet</h3>
+    <p>Import a PDF on the <b>Import PDF</b> tab, then click <b>Save to Database →</b></p>
+  </div>
+  <div id="db-data" style="display:none">
+    <div class="dbhead">
+      <div><h2>Work Ticket Database</h2><p id="dbsub">—</p></div>
+      <button class="clrbtn" onclick="clearAll()">Clear all data</button>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-l">Total Entries</div><div class="kpi-v" id="kv1">—</div><div class="kpi-s" id="ks1">—</div></div>
+      <div class="kpi"><div class="kpi-l">Total Revenue</div><div class="kpi-v g" id="kv2">—</div><div class="kpi-s">All batches</div></div>
+      <div class="kpi"><div class="kpi-l">Wood Revenue</div><div class="kpi-v w" id="kv3">—</div><div class="kpi-s" id="ks3">—</div></div>
+      <div class="kpi"><div class="kpi-l">Metal Revenue</div><div class="kpi-v b" id="kv4">—</div><div class="kpi-s" id="ks4">—</div></div>
+    </div>
+    <div class="cgrid">
+      <div class="card"><div class="card-t">Revenue by Month</div><div class="card-s">Total extended cost per month</div><div class="chwrap"><canvas id="ch1"></canvas></div></div>
+      <div class="card"><div class="card-t">Wood vs Metal by Month</div><div class="card-s">Department split over time</div><div class="chwrap"><canvas id="ch2"></canvas></div></div>
+      <div class="card full"><div class="card-t">Top 15 Item Codes — All-Time Revenue</div><div class="card-s">Ranked by total extended cost</div><div class="chwrap tall"><canvas id="ch3"></canvas></div></div>
+    </div>
+    <div class="excard">
+      <div class="excard-t">Item Code Explorer</div>
+      <div class="exctrls">
+        <select class="exsel" id="deptsel" onchange="refreshSel()"><option value="">All departments</option><option value="wood">Wood</option><option value="metal">Metal</option><option value="gate">Gate</option><option value="other">Other</option></select>
+        <select class="exsel" id="codesel" onchange="drawExplorer()"><option value="">Select an item code…</option></select>
+      </div>
+      <div class="cstats" id="cstats" style="display:none">
+        <div class="cstat"><div class="cstat-l">Total Qty</div><div class="cstat-v" id="ex1">—</div></div>
+        <div class="cstat"><div class="cstat-l">Total Revenue</div><div class="cstat-v" id="ex2">—</div></div>
+        <div class="cstat"><div class="cstat-l">Batches</div><div class="cstat-v" id="ex3">—</div></div>
+      </div>
+      <div class="chwrap" id="exchwrap" style="display:none"><canvas id="ch4"></canvas></div>
+      <div id="exhint" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">select an item code above to see its monthly trend</div>
+    </div>
+    <div class="tworel">
+      <div class="excard" style="margin:0"><div class="excard-t">Top Codes by Qty</div><table class="ttable" id="tqty"></table></div>
+      <div class="excard" style="margin:0"><div class="excard-t">Top Codes by Revenue</div><table class="ttable" id="trev"></table></div>
+    </div>
+    <div class="excard">
+      <div class="excard-t">Saved Batches</div>
+      <div class="blist" id="blist"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ── SUPABASE CONFIG ──────────────────────────────────────────────────────────
+const SB_URL = 'https://cuiwfcmlgjcrrqclkioz.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1aXdmY21sZ2pjcnJxY2xraW96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNTkzMzksImV4cCI6MjA5NDYzNTMzOX0.Z0aq6FwkGqxyfCXGua86DBhgvgXP0WrWERROc1BTZ1g';
+
+const sbHeaders = {
+  'apikey': SB_KEY,
+  'Authorization': 'Bearer ' + SB_KEY,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=minimal'
+};
+
+async function sbInsertBatch(rows) {
+  const res = await fetch(SB_URL + '/rest/v1/work_tickets', {
+    method: 'POST',
+    headers: sbHeaders,
+    body: JSON.stringify(rows)
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+}
+
+async function sbFetchAll() {
+  // Fetch all rows — paginate in chunks of 1000
+  let all = [], offset = 0, chunk = 1000;
+  while (true) {
+    const res = await fetch(
+      SB_URL + '/rest/v1/work_tickets?select=*&order=id.asc&limit=' + chunk + '&offset=' + offset,
+      { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
+    );
+    if (!res.ok) throw new Error(await res.text());
+    const rows = await res.json();
+    all = all.concat(rows);
+    if (rows.length < chunk) break;
+    offset += chunk;
+  }
+  return all;
+}
+
+async function sbFetchTravelerNumbers() {
+  // Just get traveler numbers for duplicate check
+  const res = await fetch(
+    SB_URL + '/rest/v1/work_tickets?select=traveler_number&limit=10000',
+    { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
+  );
+  if (!res.ok) throw new Error(await res.text());
+  const rows = await res.json();
+  return new Set(rows.map(r => r.traveler_number));
+}
+
+async function sbDeleteByBatch(batch) {
+  const res = await fetch(
+    SB_URL + '/rest/v1/work_tickets?batch=eq.' + encodeURIComponent(batch),
+    { method: 'DELETE', headers: sbHeaders }
+  );
+  if (!res.ok) throw new Error(await res.text());
+}
+
+async function sbDeleteAll() {
+  // Delete all rows — using neq on a column that always has a value
+  const res = await fetch(
+    SB_URL + '/rest/v1/work_tickets?id=gte.0',
+    { method: 'DELETE', headers: sbHeaders }
+  );
+  if (!res.ok) throw new Error(await res.text());
+}
+
+// ── PDF.JS ───────────────────────────────────────────────────────────────────
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let parsed = [], meta = {}, filt = [], pg = 1, pp = 30, sc = null, sd = 1;
+let fso = true, finv = false, fwd = true, fmt = true, fgate = true, funk = false, fq = '';
+let ch1i, ch2i, ch3i, ch4i;
+let dbCache = null; // cached DB rows
+
+// ── WOOD SET ─────────────────────────────────────────────────────────────────
+const WOOD = new Set(["W2DL4","WMA6","WNE6","WNM6","WOK4","WOK5","WOK6","WT12-2DL","WT12-2SL","WUT-6","CS-CUS","SS-CUS","W1DL4","W1DL5","W1DL6","W1SL4","W1SL5","W1SL6","W2DL4F","W2DL5","W2DL6","W2KA3-1","W2KA4-1","W2KA5-1","W2SL4","W2SL5","W2SL6","W4DL4","W4DL5","W4DL6","W4KA3-1","W4KA4-1","W4KA5-1","W4SL4","W4SL5","W4SL6","WAZ-CUS","WAZ3-2","WAZ4-2","WAZ5-2","WBW-CUS","WBW4","WBW5","WBW6","WCO-CUS","WCO4","WCO5","WCO6","WCT-CUS","WDE-CUS","WDE4-2","WDE4-3","WDL-CUS","WDLARB48","WFI-CUS","WFL-CUS","WFL4","WFL5","WFL6","WHI-CUS","WHI4","WHI5","WHI6","WIL-CUS","WIL3-2","WIL3-3","WIL4-2","WIL4-3","WIL5-2","WIL5-3","WIL6-2","WIL6-3","WKA-CUS","WKY-CUS","WKY4","WKY5","WKY6","WMA-CUS","WMA4","WMA5","WMD-CUS","WMI-CUS","WMN-CUS","WMN4","WMN5","WMN6","WMO-CUS","WMO4","WMO5","WMO6","WMT-CUS","WMT4","WMT5","WMT6","WMT6CBR","WNC-CUS","WND-CUS","WNE-CUS","WNE4","WNE5","WNE7","WNE8","WNH-CUS","WNH4","WNH5","WNH6","WNM-CUS","WNM4","WNM5","WNM7","WNM8","WNV-CUS","WNY-CUS","WNY4","WNY5","WNY6","WOK-CUS","WOK3","WOK7","WOK8","WPA-CUS","WPA4","WPA5","WPA6","WPA7","WPA8","WRI-CUS","WSC-CUS","WSD-CUS","WSL-CUS","WTN-CUS","WTN4","WTN5","WTN6","WTOP-CUS","WUT-4","WUT-5","WUT-7","WUT-8","WUT-CUS","WVT-CUS","WVT4","WVT5","WVT6","WW-CUS","WWI-CUS","CSG-CUS","CSG44","CSG45","CSG54","CSG55","CSG64","CSG65","CSG84","CSG85","RC2G3","RC2G4","RC2G5","RC3G3","RC3G4","RC3G5","SSG-CUS","WATG-CUS","WAZG-CUS","WBIRG-CUS","WBIRG44","WBIRG45","WBIRG54","WBIRG55","WBIRG64","WBIRG65","WBWG-CUS","WCOG-CUS","WCTG-CUS","WDALG-CUS","WDALG44","WDALG45","WDALG54","WDALG55","WDALG64","WDALG65","WDEG-CUS","WDEG44-2","WDEG44-3","WDENG-CUS","WDENG44","WDENG45","WDENG54","WDENG55","WDENG64","WDENG65","WDLG-CUS","WFIG-CUS","WFLG-CUS","WHIG-CUS","WILG-CUS","WILG34-2","WILG34-3","WILG35-2","WILG44-2","WILG44-3","WILG45-2","WILG54-2","WILG55-2","WKAG-CUS","WKYG-CUS","WMAG-CUS","WMDG-CUS","WMNG-CUS","WMOG-CUS","WMTG-CUS","WNCG-CUS","WNDG-CUS","WNEG-CUS","WNHG-CUS","WNMG-CUS","WNOG-CUS","WNORG-CUS","WNORG44","WNORG45","WNORG54","WNORG55","WNORG64","WNORG65","WNVG-CUS","WNYG-CUS","WOKG-CUS","WOKG64","WOKG64-2SL","WOKG65","WOKG65-2SL","WPAG-CUS","WRCG-CUS","WRIG-CUS","WSCG-CUS","WSDG-CUS","WSLG-CUS","WTNG-CUS","WUTG-CUS","WVTG-CUS","WWG-CUS","WWIG-CUS","WWYG-CUS","WWYG64","WWYG65","WGMOUNT-CUS","SP5","SP6","SS4","SS5","SS6","SS8","CS4","CS4-23DR","CS4-24DR","CS5","CS5-23DR","CS6","CS6-23DR","CS8","CSP4","CSP5","CSP6","CSP8","CSSP3","CSSP4","CSSP4-23DR","CSSP4-24DR","CSSP5","CSSPG44","CSSPG45","CSSPG54","CSSPG55","SO-CS","ACQ-CUS","ACQ104","ACQ104H","ACQ105","ACQ105H","ACQ124","ACQ125","ACQ164","ACQ84","ACQ85","ACQ94H","ACQ95","WC-CUS","WC104","WC105","WC106","WC124","WC125","WC84","WC85","WC94","WC95","RC-CUS","RC124","RCC104","RCC94","WC166","WC168","WC238","WC248","WCB-CUS","WCD238","WCD248","RC138","RC144","RC144TG","RC145","RC146","RC148","RC148TG","RC224","RC226","RC228","RC264","RC265","RC268","RC284","RC285","RC286","RC287","RCB-CUS","RCC148","RCC168","RCC268","LGR3","LGR4","LGR5","LGR6","LSR-CUS","LSR2G3","LSR2G4","LSR2G5","LSR3G3","LSR3G4","LSR3G5","LSRG-CUS","PSR11","PSR2G4","PSR3G4","SO-LSR","CPR-CUS","DRC2G4","DRC2G5","DRC3G4","DRC3G5","RC2HC","RC2HE","RC2HL","RC3HC","RC3HE","RC3HL","RCP10","RCP7","RCP8","SO-WARB","WARB-CUS","WARCH36","WARCH42","WARCH48","WARCH60","WARCH72","WPER-CUS","WPER48","WPER60","WPER72"]);
+
+function mat(c) {
+  const u = c.toUpperCase();
+  const GP = ["OKG","ILG","SCG","SDG","COG","FLG","HIG","NVG","NCG","CAG","AZG","ALG","CTG","LAG","NJG","ORG","TXG","WAG","2ARG","2HG","3HG","4HG","35KAG","35ARG","35RICG","BWG","OEG","DDLG","DSLG","FIG-","KING","LATG","MADG","RAIG","RICG","PRGM","PRG","PGMOUNT"];
+  for (const p of GP) if (u.startsWith(p)) return 'gate';
+  if (WOOD.has(u)) return 'wood';
+  if (/^CLG/.test(u) || /^CG\d/.test(u) || /^CLGG/.test(u) || /^CLGC/.test(u) || /^CLGF/.test(u)) return 'metal';
+  if (u === 'GP-CUS' || /^GP-/.test(u)) return 'metal';
+  if (u === 'CP-CUS' || /^CP-/.test(u)) return 'metal';
+  const WP = ["ACQ","CSSP","CSSPG","CSG","CSP","CS4","CS5","CS6","CS8","W","SS4","SS5","SS6","SS8","LSR","PSR","LGR","CPR","DRC","RCP","WARB","WARCH","WPER","WDAL","LSRG","RC1","RC2","RC3","RCB","RCC"];
+  const MP = ["CLG","CP-","CPI","GP-","GPI","BLS","TLS","BVL","BVE","BVC","BTB","BBB","LBB","LTB","MOH","MPH","MFH","FP","TRUSS","N38","N516","NB","IDR","VFT","AFT","WTS","MTB","TW-","STD"];
+  for (const p of WP) if (u.startsWith(p)) return 'wood';
+  for (const p of MP) if (u.startsWith(p)) return 'metal';
+  return 'other';
+}
+
+// ── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+}
+
+function showLoader(msg) {
+  document.getElementById('loader-txt').textContent = msg || 'Loading…';
+  document.getElementById('loader').classList.add('show');
+}
+function hideLoader() {
+  document.getElementById('loader').classList.remove('show');
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function goTo(name) {
+  document.getElementById('scr-import').style.display = name === 'import' ? 'block' : 'none';
+  document.getElementById('scr-db').style.display = name === 'db' ? 'block' : 'none';
+  document.getElementById('tab-import').classList.toggle('on', name === 'import');
+  document.getElementById('tab-db').classList.toggle('on', name === 'db');
+  if (name === 'db') renderDB();
+}
+
+// ── DROP ZONE ─────────────────────────────────────────────────────────────────
+const dz = document.getElementById('dropzone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type === 'application/pdf') runPDF(f);
+  else toast('Please drop a PDF file.', 'err');
+});
+document.getElementById('fi').addEventListener('change', e => { if (e.target.files[0]) runPDF(e.target.files[0]); });
+
+function sts(msg, spin) {
+  const b = document.getElementById('statusbar'); b.style.display = 'flex';
+  document.getElementById('stxt').textContent = msg;
+  document.getElementById('sdot').className = 'sdot' + (spin ? ' spin' : '');
+}
+
+// ── PDF PARSING ───────────────────────────────────────────────────────────────
+async function runPDF(file) {
+  sts('Reading PDF…', true);
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const np = pdf.numPages;
+  const lines = [];
+  for (let p = 1; p <= np; p++) {
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    const byY = {};
+    for (const it of tc.items) {
+      const y = Math.round(it.transform[5]);
+      if (!byY[y]) byY[y] = [];
+      byY[y].push({ x: it.transform[4], s: it.str });
+    }
+    for (const y of Object.keys(byY).map(Number).sort((a, b) => b - a)) {
+      const toks = byY[y].sort((a, b) => a.x - b.x).map(i => i.s.trim()).filter(s => s);
+      if (toks.length) lines.push({ toks, raw: toks.join(' ') });
+    }
+  }
+  const full = lines.map(l => l.raw).join('\n');
+  const bM = full.match(/Batch\s*(?:Number:?)?\s*(\d+)/i);
+  const rM = full.match(/Register\s+Number:\s*([\w-]+)/i);
+  const tM = full.match(/Trans\s+Number:\s*(\d+)/i);
+  const jM = full.match(/Journal\s+Posting\s+Date:\s*(\d{1,2}\/\d{1,2}\/\d{4})/i);
+  const jd = jM ? jM[1] : '—';
+  meta = { batch: bM?.[1] || '—', reg: rM?.[1] || '—', trans: tM?.[1] || '—', date: jd, pages: np, file: file.name };
+  document.getElementById('mb').textContent = meta.batch;
+  document.getElementById('mr').textContent = meta.reg;
+  document.getElementById('mt').textContent = meta.trans;
+  document.getElementById('md').textContent = jd;
+  document.getElementById('mp').textContent = np;
+  document.getElementById('metabar').style.display = 'flex';
+  sts('Parsing work tickets…', true);
+
+  const wti = [];
+  for (let i = 0; i < lines.length; i++)
+    if (lines[i].toks.some(t => /^0{5,}\d{5,}$/.test(t))) wti.push(i);
+
+  const entries = [];
+  for (let wi = 0; wi < wti.length; wi++) {
+    const li = wti[wi], nx = wi + 1 < wti.length ? wti[wi + 1] : lines.length;
+    const blk = lines.slice(li, Math.min(li + 8, nx));
+    const wl = lines[li];
+    const wtok = wl.toks.find(t => /^0{5,}\d{5,}$/.test(t)); if (!wtok) continue;
+    const code = wl.toks.find(t => t !== wtok && /^[A-Z][A-Z0-9\-]+$/.test(t) && t.length >= 3 && !/^(Yes|EA|W\/T|S\/O|AII|WO)$/.test(t)); if (!code) continue;
+    const yi = wl.toks.indexOf('Yes'); if (yi === -1) continue;
+    const an = wl.toks.slice(yi + 1).filter(t => /^[\d,]+\.?\d+$/.test(t)); if (an.length < 2) continue;
+    const qty = parseFloat(an[0].replace(/,/g, ''));
+    let unit, ext;
+    if (an.length >= 3) { unit = parseFloat(an[1].replace(/,/g, '')); ext = parseFloat(an[2].replace(/,/g, '')); }
+    else { ext = parseFloat(an[1].replace(/,/g, '')); unit = qty > 0 ? ext / qty : 0; }
+    let so = null, isInv = false;
+    for (let b = 1; b < blk.length; b++) {
+      const sm = blk[b].raw.match(/S\/O\s+(0\d{6,7})/);
+      if (sm) { so = sm[1]; break; }
+      if (/\bInventory\b/i.test(blk[b].raw)) { isInv = true; break; }
+    }
+    if (!so && !isInv) continue;
+    let desc = '';
+    for (let b = 1; b < blk.length; b++) {
+      const bl = blk[b], br = blk[b].raw;
+      if (/S\/O|Inventory|Run\s+Date|P\/M\s+Date|Page:|Batch|Register|Trans\s+Number|Journal|Amendola|Work\s+Ticket/i.test(br)) continue;
+      if (/^[\d\s.,]+$/.test(br)) continue;
+      if (/\bEA\b/.test(br)) {
+        const ei = bl.toks.lastIndexOf('EA');
+        const dt = bl.toks.slice(0, ei).filter(t => !/^\d+\.?\d*$/.test(t));
+        if (dt.length) { desc = dt.join(' ').replace(/^\*/, '').trim(); break; }
+      }
+    }
+    entries.push({ date: jd, wt: wtok.replace(/^0+/, ''), so: so || 'Inventory', isInv, code, desc, qty, unit, ext, material: mat(code) });
+  }
+
+  parsed = entries;
+  sts('✓ ' + entries.length + ' work tickets parsed · Journal Date: ' + jd, false);
+
+  const sos = new Set(entries.filter(r => !r.isInv).map(r => r.so));
+  const tq = entries.reduce((s, r) => s + r.qty, 0);
+  const wc = entries.filter(r => r.material === 'wood').reduce((s, r) => s + r.ext, 0);
+  const mc = entries.filter(r => r.material === 'metal').reduce((s, r) => s + r.ext, 0);
+  const gc = entries.filter(r => r.material === 'gate').reduce((s, r) => s + r.ext, 0);
+  document.getElementById('sv1').textContent = entries.length;
+  document.getElementById('sv2').textContent = sos.size;
+  document.getElementById('sv3').textContent = tq.toLocaleString();
+  document.getElementById('sv4').textContent = '$' + fmt2(wc);
+  document.getElementById('sv5').textContent = '$' + fmt2(mc);
+  document.getElementById('sv6').textContent = '$' + fmt2(gc);
+  document.getElementById('psummary').style.display = 'grid';
+  document.getElementById('pcontrols').style.display = 'flex';
+  document.getElementById('ppg').style.display = 'flex';
+  document.getElementById('savebtn').style.display = 'inline-block';
+  doFilter();
+}
+
+// ── FORMATTING ────────────────────────────────────────────────────────────────
+function fmt2(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmt3(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }); }
+function m2p(m) {
+  if (m === 'wood') return '<span class="pill pill-wood">Wood</span>';
+  if (m === 'metal') return '<span class="pill pill-metal">Metal</span>';
+  if (m === 'gate') return '<span class="pill pill-gate">Gate</span>';
+  return '<span class="pill pill-other">Other</span>';
+}
+
+// ── TABLE FILTERING & RENDERING ───────────────────────────────────────────────
+function doFilter() {
+  fq = document.getElementById('psearch').value;
+  filt = parsed.filter(r => {
+    if (r.isInv && !finv) return false;
+    if (!r.isInv && !fso) return false;
+    if (r.material === 'wood' && !fwd) return false;
+    if (r.material === 'metal' && !fmt) return false;
+    if (r.material === 'gate' && !fgate) return false;
+    if (r.material === 'other' && !funk) return false;
+    if (fq) {
+      const q = fq.toLowerCase();
+      return r.so.toLowerCase().includes(q) || r.code.toLowerCase().includes(q) ||
+        r.desc.toLowerCase().includes(q) || r.wt.includes(q) || r.date.includes(q);
+    }
+    return true;
+  });
+  if (sc) filt.sort((a, b) => { const av = a[sc], bv = b[sc]; return (typeof av === 'string' ? av.localeCompare(bv) : av - bv) * sd; });
+  pg = 1; drawTable();
+}
+
+function drawTable() {
+  const tb = document.getElementById('tbody');
+  const s = (pg - 1) * pp, e = Math.min(s + pp, filt.length);
+  if (!filt.length) {
+    tb.innerHTML = '<tr><td colspan="9" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">no entries match</td></tr>';
+    return;
+  }
+  tb.innerHTML = filt.slice(s, e).map(r => `<tr>
+    <td class="cdate">${r.date}</td>
+    <td>${r.isInv ? '<span class="pill pill-inv">Inventory</span>' : `<span class="pill pill-so">${r.so}</span>`}</td>
+    <td><span class="pill pill-wt">${r.wt}</span></td>
+    <td>${m2p(r.material)}</td>
+    <td><span class="ccode">${r.code}</span></td>
+    <td class="cdesc" title="${r.desc}">${r.desc || '—'}</td>
+    <td class="cnum">${r.qty.toFixed(2)}</td>
+    <td class="cnum">$${fmt3(r.unit)}</td>
+    <td class="cext">$${fmt2(r.ext)}</td>
+  </tr>`).join('');
+  document.getElementById('pginfo').textContent = `${s + 1}–${e} of ${filt.length}`;
+  document.getElementById('pprev').disabled = pg === 1;
+  document.getElementById('pnext').disabled = e >= filt.length;
+}
+
+function tog(t) {
+  if (t === 'so') { fso = !fso; document.getElementById('bso').className = 'btn' + (fso ? ' so' : ''); }
+  if (t === 'inv') { finv = !finv; document.getElementById('binv').className = 'btn' + (finv ? ' inv' : ''); }
+  if (t === 'wd') { fwd = !fwd; document.getElementById('bwd').className = 'btn' + (fwd ? ' wd' : ''); }
+  if (t === 'mt') { fmt = !fmt; document.getElementById('bmt').className = 'btn' + (fmt ? ' mt' : ''); }
+  if (t === 'gate') { fgate = !fgate; document.getElementById('bgt').className = 'btn' + (fgate ? ' gt' : ''); }
+  if (t === 'unk') { funk = !funk; document.getElementById('bunk').className = 'btn' + (funk ? ' oth' : ''); }
+  doFilter();
+}
+
+function srt(col) {
+  if (sc === col) sd *= -1; else { sc = col; sd = 1; }
+  document.querySelectorAll('thead th').forEach(th => th.classList.remove('srt'));
+  const ids = { date: 'hdate', so: 'hso', wt: 'hwt', material: 'hmat', code: 'hcode', desc: 'hdesc', qty: 'hqty', unit: 'hunit', ext: 'hext' };
+  document.getElementById(ids[col]).classList.add('srt');
+  doFilter();
+}
+
+function goPage(d) { pg += d; drawTable(); }
+document.getElementById('psearch').addEventListener('input', doFilter);
+
+function dlCSV() {
+  const h = ['Journal Posting Date', 'S/O Number', 'Traveler (W/T)', 'Department', 'Item Code', 'Description', 'Qty', 'Unit Cost', 'Extended Cost'];
+  const rows = parsed.map(r => [r.date, r.so, r.wt, r.material, r.code, '"' + r.desc + '"', r.qty.toFixed(2), r.unit.toFixed(3), r.ext.toFixed(2)]);
+  const csv = [h, ...rows].map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = 'work_tickets_' + (meta.batch || 'export') + '.csv';
+  a.click();
+}
+
+// ── SAVE TO SUPABASE ──────────────────────────────────────────────────────────
+async function saveToDB() {
+  if (!parsed.length) return;
+  const btn = document.getElementById('savebtn');
+  btn.disabled = true;
+  btn.textContent = 'Checking duplicates…';
+
+  try {
+    showLoader('Checking for duplicate traveler numbers…');
+    const existingWTs = await sbFetchTravelerNumbers();
+    const dupes = parsed.filter(r => existingWTs.has(r.wt));
+    const newEntries = parsed.filter(r => !existingWTs.has(r.wt));
+    hideLoader();
+
+    if (dupes.length > 0 && newEntries.length === 0) {
+      toast('All ' + dupes.length + ' traveler #s already in database. Nothing added.', 'err');
+      btn.disabled = false; btn.textContent = 'Save to Database →'; return;
+    }
+    if (dupes.length > 0) {
+      if (!confirm(dupes.length + ' traveler #' + (dupes.length > 1 ? 's are' : ' is') + ' already in the database and will be skipped.\n\n' + newEntries.length + ' new entries will be added. Continue?')) {
+        btn.disabled = false; btn.textContent = 'Save to Database →'; return;
+      }
+    }
+
+    const toAdd = dupes.length > 0 ? newEntries : parsed;
+
+    // Convert to Supabase row format
+    const rows = toAdd.map(r => {
+      let isoDate = null;
+      if (r.date && r.date !== '—') {
+        const p = r.date.split('/');
+        if (p.length === 3) isoDate = p[2] + '-' + p[0].padStart(2, '0') + '-' + p[1].padStart(2, '0');
+      }
+      const dept = r.material === 'wood' ? 'Wood' : r.material === 'metal' ? 'Metal' : r.material === 'gate' ? 'Gate' : 'Other';
+      return {
+        batch: meta.batch || '',
+        journal_date: isoDate,
+        so_number: r.so,
+        is_inventory: r.isInv,
+        traveler_number: r.wt,
+        item_code: r.code,
+        description: r.desc || '',
+        department: dept,
+        qty: Math.round(r.qty * 1000) / 1000,
+        unit_cost: Math.round(r.unit * 1000) / 1000,
+        extended_cost: Math.round(r.ext * 100) / 100
+      };
+    });
+
+    // Insert in chunks of 500
+    showLoader('Saving ' + rows.length + ' entries to Supabase…');
+    const chunkSize = 500;
+    for (let i = 0; i < rows.length; i += chunkSize) {
+      await sbInsertBatch(rows.slice(i, i + chunkSize));
+      document.getElementById('loader-txt').textContent = 'Saved ' + Math.min(i + chunkSize, rows.length) + ' / ' + rows.length + '…';
+    }
+
+    hideLoader();
+    dbCache = null; // invalidate cache
+    await updateBadge();
+    toast('✓ ' + rows.length + ' entries saved to Supabase!', 'ok');
+    btn.disabled = false; btn.textContent = 'Save to Database →';
+    setTimeout(() => goTo('db'), 800);
+
+  } catch (e) {
+    hideLoader();
+    console.error(e);
+    toast('Error: ' + e.message, 'err');
+    btn.disabled = false; btn.textContent = 'Save to Database →';
+  }
+}
+
+// ── DATABASE SCREEN ───────────────────────────────────────────────────────────
+async function renderDB() {
+  const empty = document.getElementById('db-empty-msg');
+  const data = document.getElementById('db-data');
+  showLoader('Loading database…');
+  try {
+    dbCache = await sbFetchAll();
+    hideLoader();
+    if (!dbCache || !dbCache.length) {
+      empty.style.display = 'block'; data.style.display = 'none'; return;
+    }
+    empty.style.display = 'none'; data.style.display = 'block';
+    requestAnimationFrame(() => requestAnimationFrame(() => buildDB(dbCache)));
+  } catch (e) {
+    hideLoader();
+    toast('Failed to load database: ' + e.message, 'err');
+  }
+}
+
+function buildDB(rows) {
+  // Remap from DB format to local format
+  const e = rows.map(r => ({
+    date: r.journal_date ? (r.journal_date.slice(5, 7) + '/' + r.journal_date.slice(8, 10) + '/' + r.journal_date.slice(0, 4)) : '—',
+    wt: r.traveler_number,
+    so: r.so_number,
+    isInv: r.is_inventory,
+    code: r.item_code,
+    desc: r.description,
+    qty: parseFloat(r.qty) || 0,
+    unit: parseFloat(r.unit_cost) || 0,
+    ext: parseFloat(r.extended_cost) || 0,
+    material: (r.department || '').toLowerCase(),
+    batch: r.batch,
+    created_at: r.created_at
+  }));
+
+  const tot = e.reduce((s, r) => s + r.ext, 0);
+  const wt = e.filter(r => r.material === 'wood').reduce((s, r) => s + r.ext, 0);
+  const mt = e.filter(r => r.material === 'metal').reduce((s, r) => s + r.ext, 0);
+  const sos = new Set(e.filter(r => !r.isInv).map(r => r.so));
+
+  // Unique batches
+  const batches = [...new Set(e.map(r => r.batch))].filter(Boolean);
+
+  document.getElementById('dbsub').textContent = batches.length + ' batch' + (batches.length !== 1 ? 'es' : '') + ' · ' + e.length.toLocaleString() + ' entries';
+  document.getElementById('kv1').textContent = e.length.toLocaleString();
+  document.getElementById('ks1').textContent = batches.length + ' batches · ' + sos.size + ' sales orders';
+  document.getElementById('kv2').textContent = '$' + fmt2(tot);
+  document.getElementById('kv3').textContent = '$' + fmt2(wt);
+  document.getElementById('ks3').textContent = tot > 0 ? ((wt / tot) * 100).toFixed(1) + '% of total' : '—';
+  document.getElementById('kv4').textContent = '$' + fmt2(mt);
+  document.getElementById('ks4').textContent = tot > 0 ? ((mt / tot) * 100).toFixed(1) + '% of total' : '—';
+
+  buildCh1(e); buildCh2(e); buildCh3(e); buildTables(e);
+  buildBatches(e, batches);
+  fillSel(e);
+}
+
+// ── CHART OPTIONS ─────────────────────────────────────────────────────────────
+function mkey(d) { const p = d.split('/'); return p.length < 3 ? d : p[2] + '-' + p[0].padStart(2, '0'); }
+function mlbl(k) { const [y, m] = k.split('-'); return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m - 1] + ' ' + y; }
+
+const CO = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { labels: { color: '#8a8980', font: { size: 10, family: "'IBM Plex Mono'" }, boxWidth: 10 } } },
+  scales: {
+    x: { ticks: { color: '#5a5956', font: { size: 10, family: "'IBM Plex Mono'" } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+    y: { ticks: { color: '#5a5956', font: { size: 10, family: "'IBM Plex Mono'" }, callback: v => '$' + v.toLocaleString() }, grid: { color: 'rgba(255,255,255,0.04)' } }
+  }
+};
+
+function buildCh1(e) {
+  const bm = {}; e.forEach(r => { const k = mkey(r.date); bm[k] = (bm[k] || 0) + r.ext; });
+  const ks = Object.keys(bm).sort();
+  if (ch1i) { ch1i.destroy(); ch1i = null; }
+  ch1i = new Chart(document.getElementById('ch1'), { type: 'bar', data: { labels: ks.map(mlbl), datasets: [{ label: 'Revenue', data: ks.map(k => bm[k]), backgroundColor: 'rgba(29,158,117,.65)', borderColor: '#1D9E75', borderWidth: 1, borderRadius: 3 }] }, options: CO });
+}
+
+function buildCh2(e) {
+  const bm = {}; e.forEach(r => { const k = mkey(r.date); if (!bm[k]) bm[k] = { wood: 0, metal: 0, gate: 0 }; bm[k][r.material] = (bm[k][r.material] || 0) + r.ext; });
+  const ks = Object.keys(bm).sort();
+  if (ch2i) { ch2i.destroy(); ch2i = null; }
+  ch2i = new Chart(document.getElementById('ch2'), {
+    type: 'bar', data: {
+      labels: ks.map(mlbl), datasets: [
+        { label: 'Wood', data: ks.map(k => bm[k].wood || 0), backgroundColor: 'rgba(239,159,39,.65)', borderColor: '#EF9F27', borderWidth: 1, borderRadius: 3 },
+        { label: 'Metal', data: ks.map(k => bm[k].metal || 0), backgroundColor: 'rgba(45,125,210,.65)', borderColor: '#2d7dd2', borderWidth: 1, borderRadius: 3 },
+        { label: 'Gate', data: ks.map(k => bm[k].gate || 0), backgroundColor: 'rgba(155,89,182,.65)', borderColor: '#9b59b6', borderWidth: 1, borderRadius: 3 }
+      ]
+    }, options: CO
+  });
+}
+
+function buildCh3(e) {
+  const bc = {}; e.forEach(r => { bc[r.code] = (bc[r.code] || 0) + r.ext; });
+  const sorted = Object.entries(bc).sort((a, b) => b[1] - a[1]).slice(0, 15);
+  const cols = sorted.map(([c]) => {
+    const m = mat(c);
+    return m === 'wood' ? 'rgba(239,159,39,.7)' : m === 'metal' ? 'rgba(45,125,210,.7)' : m === 'gate' ? 'rgba(155,89,182,.7)' : 'rgba(100,100,98,.7)';
+  });
+  if (ch3i) { ch3i.destroy(); ch3i = null; }
+  ch3i = new Chart(document.getElementById('ch3'), {
+    type: 'bar', data: { labels: sorted.map(([c]) => c), datasets: [{ label: 'Revenue', data: sorted.map(([, v]) => v), backgroundColor: cols, borderRadius: 3 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8a8980', font: { size: 10, family: "'IBM Plex Mono'" } } } },
+      scales: {
+        x: { ticks: { color: '#5a5956', font: { size: 10, family: "'IBM Plex Mono'" }, callback: v => '$' + Number(v).toLocaleString() }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#8a8980', font: { size: 10, family: "'IBM Plex Mono'" } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+      }, indexAxis: 'y'
+    }
+  });
+}
+
+function buildTables(e) {
+  const bc = {}; e.forEach(r => { if (!bc[r.code]) bc[r.code] = { code: r.code, qty: 0, rev: 0, m: mat(r.code) }; bc[r.code].qty += r.qty; bc[r.code].rev += r.ext; });
+  const all = Object.values(bc);
+  const mq = Math.max(...all.map(x => x.qty)), mr = Math.max(...all.map(x => x.rev));
+  function tbl(sorted, vfn, maxv, money) {
+    return '<thead><tr><th>#</th><th>Code</th><th>Dept</th><th>Value</th><th style="min-width:70px"></th></tr></thead><tbody>' +
+      sorted.slice(0, 10).map((r, i) => {
+        const rc = i === 0 ? 'g' : i === 1 ? 's' : i === 2 ? 'b' : '';
+        const pct = maxv > 0 ? (vfn(r) / maxv * 100).toFixed(0) : 0;
+        const val = money ? '$' + fmt2(vfn(r)) : vfn(r).toLocaleString();
+        const mclass = r.m === 'wood' ? 'w' : r.m === 'metal' ? 'm' : r.m === 'gate' ? 'gt' : '';
+        return `<tr><td><span class="rnk ${rc}">${i + 1}</span></td><td><span class="ccode">${r.code}</span></td><td>${m2p(r.m)}</td><td class="cnum" style="font-weight:600">${val}</td><td><div class="barbg"><div class="barfill ${mclass}" style="width:${pct}%"></div></div></td></tr>`;
+      }).join('') + '</tbody>';
+  }
+  document.getElementById('tqty').innerHTML = tbl([...all].sort((a, b) => b.qty - a.qty), r => r.qty, mq, false);
+  document.getElementById('trev').innerHTML = tbl([...all].sort((a, b) => b.rev - a.rev), r => r.rev, mr, true);
+}
+
+function buildBatches(e, batches) {
+  const bl = document.getElementById('blist');
+  if (!batches.length) { bl.innerHTML = '<div style="color:var(--t3);font-size:11px;font-family:var(--mono)">No batches saved.</div>'; return; }
+  // Build batch summaries from entries
+  const batchMap = {};
+  e.forEach(r => {
+    if (!r.batch) return;
+    if (!batchMap[r.batch]) batchMap[r.batch] = { batch: r.batch, count: 0, total: 0, date: r.date };
+    batchMap[r.batch].count++;
+    batchMap[r.batch].total += r.ext;
+  });
+  bl.innerHTML = Object.values(batchMap).reverse().map(b => `
+    <div class="bitem">
+      <div class="bitem-l"><div class="bdot"></div>
+        <div><div class="bname">Batch ${b.batch}</div>
+        <div class="bdate">${b.date} · ${b.count} entries</div></div>
+      </div>
+      <div class="bitem-r">
+        <span class="bcost">$${fmt2(b.total)}</span>
+        <button class="delbtn" onclick="delBatch('${b.batch}')">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+function fillSel(e) {
+  const dept = document.getElementById('deptsel').value;
+  const bc = {}; e.forEach(r => { if (!bc[r.code]) bc[r.code] = { rev: 0, m: r.material }; bc[r.code].rev += r.ext; });
+  const sorted = Object.entries(bc).filter(([, v]) => !dept || v.m === dept).sort((a, b) => b[1].rev - a[1].rev);
+  const sel = document.getElementById('codesel'); const cur = sel.value;
+  sel.innerHTML = '<option value="">Select an item code…</option>' + sorted.map(([c]) => `<option value="${c}">${c}</option>`).join('');
+  if (cur && sorted.find(([c]) => c === cur)) { sel.value = cur; drawExplorer(); }
+}
+
+function refreshSel() { if (dbCache) fillSel(dbCache.map(r => ({ code: r.item_code, material: (r.department || '').toLowerCase(), ext: parseFloat(r.extended_cost) || 0 }))); }
+
+function drawExplorer() {
+  const code = document.getElementById('codesel').value;
+  if (!code) {
+    document.getElementById('cstats').style.display = 'none';
+    document.getElementById('exchwrap').style.display = 'none';
+    document.getElementById('exhint').style.display = 'block';
+    return;
+  }
+  if (!dbCache) return;
+  const e = dbCache.filter(r => r.item_code === code).map(r => ({
+    date: r.journal_date ? (r.journal_date.slice(5, 7) + '/' + r.journal_date.slice(8, 10) + '/' + r.journal_date.slice(0, 4)) : '—',
+    qty: parseFloat(r.qty) || 0,
+    ext: parseFloat(r.extended_cost) || 0,
+    batch: r.batch
+  }));
+  const tq = e.reduce((s, r) => s + r.qty, 0), tr = e.reduce((s, r) => s + r.ext, 0);
+  const bids = new Set(e.map(r => r.batch));
+  document.getElementById('ex1').textContent = tq.toLocaleString();
+  document.getElementById('ex2').textContent = '$' + fmt2(tr);
+  document.getElementById('ex3').textContent = bids.size;
+  document.getElementById('cstats').style.display = 'grid';
+  document.getElementById('exhint').style.display = 'none';
+  document.getElementById('exchwrap').style.display = 'block';
+  const bm = {}; e.forEach(r => { const k = mkey(r.date); if (!bm[k]) bm[k] = { qty: 0, rev: 0 }; bm[k].qty += r.qty; bm[k].rev += r.ext; });
+  const ks = Object.keys(bm).sort();
+  const m = mat(code);
+  const col = m === 'wood' ? 'rgba(239,159,39,.8)' : m === 'metal' ? 'rgba(91,170,240,.8)' : m === 'gate' ? 'rgba(155,89,182,.8)' : 'rgba(29,158,117,.8)';
+  if (ch4i) { ch4i.destroy(); ch4i = null; }
+  ch4i = new Chart(document.getElementById('ch4'), {
+    type: 'line',
+    data: {
+      labels: ks.map(mlbl), datasets: [
+        { label: 'Revenue ($)', data: ks.map(k => bm[k].rev), borderColor: col, backgroundColor: col.replace('.8', '.08'), fill: true, tension: .4, pointBackgroundColor: col, yAxisID: 'y' },
+        { label: 'Qty', data: ks.map(k => bm[k].qty), borderColor: 'rgba(138,137,128,.7)', backgroundColor: 'transparent', tension: .4, borderDash: [4, 4], pointBackgroundColor: 'rgba(138,137,128,.7)', yAxisID: 'y1' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8a8980', font: { size: 10, family: "'IBM Plex Mono'" }, boxWidth: 10 } } },
+      scales: {
+        x: { ticks: { color: '#5a5956', font: { size: 10, family: "'IBM Plex Mono'" } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#5a5956', font: { size: 10, family: "'IBM Plex Mono'" }, callback: v => '$' + v.toLocaleString() }, grid: { color: 'rgba(255,255,255,0.04)' }, position: 'left' },
+        y1: { ticks: { color: '#5a5956', font: { size: 10, family: "'IBM Plex Mono'" } }, grid: { display: false }, position: 'right' }
+      }
+    }
+  });
+}
+
+// ── DELETE / CLEAR ────────────────────────────────────────────────────────────
+async function delBatch(batchNum) {
+  if (!confirm('Remove all entries for Batch ' + batchNum + '? This cannot be undone.')) return;
+  showLoader('Deleting batch ' + batchNum + '…');
+  try {
+    await sbDeleteByBatch(batchNum);
+    dbCache = null;
+    hideLoader();
+    toast('Batch ' + batchNum + ' removed.', 'ok');
+    await updateBadge();
+    renderDB();
+  } catch (e) {
+    hideLoader();
+    toast('Error: ' + e.message, 'err');
+  }
+}
+
+async function clearAll() {
+  if (!confirm('Delete ALL saved data from Supabase? This cannot be undone.')) return;
+  showLoader('Deleting all data…');
+  try {
+    await sbDeleteAll();
+    dbCache = null;
+    hideLoader();
+    toast('All data cleared.', 'ok');
+    await updateBadge();
+    renderDB();
+  } catch (e) {
+    hideLoader();
+    toast('Error: ' + e.message, 'err');
+  }
+}
+
+// ── BADGE ─────────────────────────────────────────────────────────────────────
+async function updateBadge() {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/work_tickets?select=id&limit=1', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'count=exact' }
+    });
+    const count = res.headers.get('content-range');
+    if (count) {
+      const total = count.split('/')[1];
+      document.getElementById('nbadge').textContent = parseInt(total).toLocaleString() + ' entries';
+    }
+  } catch (e) {
+    document.getElementById('nbadge').textContent = '—';
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+updateBadge();
+</script>
+</body>
+</html>
