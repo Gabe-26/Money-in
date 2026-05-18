@@ -22,7 +22,7 @@
   --font:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
 }
 body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh}
-
+ 
 /* NAV */
 nav{background:#0a0a09;padding:0 2rem;display:flex;align-items:center;height:48px;border-bottom:1px solid var(--b1);gap:0;position:sticky;top:0;z-index:100}
 .logo{font-family:var(--mono);font-size:13px;font-weight:600;color:#fff;margin-right:2rem;white-space:nowrap;letter-spacing:0.02em}
@@ -31,10 +31,10 @@ nav{background:#0a0a09;padding:0 2rem;display:flex;align-items:center;height:48p
 .ntab:hover{color:var(--t1)}
 .ntab.on{color:var(--gr2);border-bottom-color:var(--gr2)}
 .nbadge{margin-left:auto;font-size:11px;font-family:var(--mono);padding:2px 8px;border-radius:4px;background:var(--gr-bg);color:var(--gr2);border:1px solid rgba(29,158,117,0.2)}
-
+ 
 /* LAYOUT */
 .wrap{max-width:1280px;margin:0 auto;padding:2rem 1.5rem}
-
+ 
 /* DROPZONE */
 #dropzone{border:1px dashed var(--b2);border-radius:8px;background:var(--s1);padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:.2s;margin-bottom:1.2rem;position:relative}
 #dropzone.over{border-color:var(--gr);background:var(--gr-bg)}
@@ -44,25 +44,25 @@ nav{background:#0a0a09;padding:0 2rem;display:flex;align-items:center;height:48p
 .dtitle{font-size:15px;font-weight:600;margin-bottom:5px;color:var(--t1)}
 .dsub{font-size:12px;color:var(--t3);font-family:var(--mono)}
 .dsub b{color:var(--gr2)}
-
+ 
 /* STATUS */
 #statusbar{font-size:12px;font-family:var(--mono);color:var(--t2);padding:9px 14px;background:var(--s1);border:1px solid var(--b1);border-radius:6px;margin-bottom:1rem;display:none;align-items:center;gap:10px}
 .sdot{width:6px;height:6px;border-radius:50%;background:var(--gr);flex-shrink:0}
 .sdot.spin{background:var(--am);animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-
+ 
 /* META */
 #metabar{display:none;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
 .mc{background:var(--s1);border:1px solid var(--b1);border-radius:5px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--t3)}
 .mc b{color:var(--t1);font-weight:600}
-
+ 
 /* SUMMARY */
 #psummary{display:none;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:1.2rem}
 .sc{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:12px 14px}
 .scl{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
 .scv{font-size:20px;font-weight:600;font-family:var(--mono);color:var(--t1)}
 .scv.g{color:var(--gr2)}.scv.w{color:var(--am-t)}.scv.m{color:var(--bl-t)}.scv.gt{color:var(--gate-t)}
-
+ 
 /* CONTROLS */
 #pcontrols{display:none;align-items:center;gap:7px;margin-bottom:10px;flex-wrap:wrap}
 #psearch{flex:1;min-width:220px;padding:7px 12px;border:1px solid var(--b2);border-radius:6px;background:var(--s1);color:var(--t1);font-size:12px;font-family:var(--mono)}
@@ -81,7 +81,7 @@ nav{background:#0a0a09;padding:0 2rem;display:flex;align-items:center;height:48p
 .btn.save:hover{background:#19b882}
 .btn.save:disabled{opacity:.5;cursor:default}
 .btn.export{border-color:var(--b2)}
-
+ 
 /* TABLE */
 #tw{overflow-x:auto;border:1px solid var(--b1);border-radius:8px;background:var(--s1)}
 table{width:100%;border-collapse:collapse;font-size:12px;min-width:960px}
@@ -92,7 +92,7 @@ tbody tr{border-bottom:1px solid var(--b1)}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:var(--s2)}
 tbody td{padding:8px 12px;vertical-align:middle}
-
+ 
 /* PILLS */
 .pill{display:inline-flex;align-items:center;font-size:10px;font-family:var(--mono);font-weight:600;padding:2px 7px;border-radius:4px;letter-spacing:0.03em}
 .pill-so{background:var(--gr-bg);color:var(--gr2);border:1px solid rgba(29,158,117,0.2)}
@@ -107,13 +107,13 @@ tbody td{padding:8px 12px;vertical-align:middle}
 .cnum{font-family:var(--mono);font-size:11px;color:var(--t1)}
 .cext{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--gr2)}
 .cdate{font-family:var(--mono);font-size:11px;color:var(--t2);white-space:nowrap}
-
+ 
 /* PAGINATION */
 #ppg{display:none;align-items:center;justify-content:space-between;margin-top:10px;font-size:11px;font-family:var(--mono);color:var(--t3)}
 .pbtn{padding:4px 11px;border-radius:5px;border:1px solid var(--b2);background:var(--s1);color:var(--t1);cursor:pointer;font-size:11px;font-family:var(--mono)}
 .pbtn:hover{background:var(--s2)}
 .pbtn:disabled{opacity:.35;cursor:default}
-
+ 
 /* DATABASE SCREEN */
 .dbwrap{max-width:1280px;margin:0 auto;padding:2rem 1.5rem}
 #db-empty-msg{text-align:center;padding:5rem 2rem;color:var(--t2)}
@@ -170,35 +170,39 @@ tbody td{padding:8px 12px;vertical-align:middle}
 .clrbtn{font-size:11px;font-family:var(--mono);padding:5px 11px;border-radius:5px;border:1px solid rgba(220,60,60,.25);background:transparent;color:var(--rd-t);cursor:pointer}
 .clrbtn:hover{background:var(--rd-bg)}
 .tworel{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-
+ 
 /* TOAST */
 #toast{position:fixed;bottom:24px;right:24px;background:var(--s2);border:1px solid var(--b2);border-radius:7px;padding:11px 16px;font-size:12px;font-family:var(--mono);color:var(--t1);z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:320px}
 #toast.show{opacity:1}
 #toast.ok{border-color:rgba(29,158,117,.4);color:var(--gr2)}
 #toast.err{border-color:rgba(220,60,60,.4);color:var(--rd-t)}
-
+ 
 /* LOADING OVERLAY */
 #loader{position:fixed;inset:0;background:rgba(15,15,13,.85);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}
 #loader.show{display:flex}
 .spin-ring{width:36px;height:36px;border:2px solid var(--b2);border-top-color:var(--gr2);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loader-txt{font-family:var(--mono);font-size:12px;color:var(--t2)}
-
-@media(max-width:800px){.cgrid,.tworel,.kpis{grid-template-columns:1fr}#psummary{grid-template-columns:repeat(2,1fr)}.card.full{grid-column:1}}
+ 
+#rec-thead th{background:var(--s2);padding:9px 12px;text-align:left;font-weight:600;font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--b1);white-space:nowrap;cursor:pointer;user-select:none}
+#rec-thead th:hover{color:var(--t1)}
+#rec-thead th.srt{color:var(--gr2)}
+ 
 </style>
 </head>
 <body>
-
+ 
 <div id="loader"><div class="spin-ring"></div><div class="loader-txt" id="loader-txt">Loading…</div></div>
 <div id="toast"></div>
-
+ 
 <nav>
   <span class="logo">AII <span>/ Work Tickets</span></span>
-  <button class="ntab on" id="tab-import" onclick="goTo('import')">Import PDF</button>
-  <button class="ntab"    id="tab-db"     onclick="goTo('db')">Database</button>
+  <button class="ntab on" id="tab-import"  onclick="goTo('import')">Import PDF</button>
+  <button class="ntab"    id="tab-records" onclick="goTo('records')">Records</button>
+  <button class="ntab"    id="tab-db"      onclick="goTo('db')">Analytics</button>
   <span class="nbadge" id="nbadge">—</span>
 </nav>
-
+ 
 <!-- IMPORT SCREEN -->
 <div id="scr-import">
 <div class="wrap">
@@ -264,8 +268,61 @@ tbody td{padding:8px 12px;vertical-align:middle}
   </div>
 </div>
 </div>
-
+ 
 <!-- DATABASE SCREEN -->
+<!-- RECORDS SCREEN -->
+<div id="scr-records" style="display:none">
+<div class="wrap">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:2px">All Records</div>
+      <div style="font-size:11px;font-family:var(--mono);color:var(--t3)" id="rec-sub">Loading…</div>
+    </div>
+    <button class="btn export" onclick="dlCSVAll()">Export CSV</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;flex-wrap:wrap">
+    <input id="recsearch" style="flex:1;min-width:220px;padding:7px 12px;border:1px solid var(--b2);border-radius:6px;background:var(--s1);color:var(--t1);font-size:12px;font-family:var(--mono)" placeholder="search date, s/o, traveler, code, description…" oninput="recFilter()"/>
+    <select id="rec-batch-sel" style="padding:6px 10px;border:1px solid var(--b2);border-radius:6px;background:var(--s1);color:var(--t1);font-size:11px;font-family:var(--mono)" onchange="recFilter()">
+      <option value="">All batches</option>
+    </select>
+    <div style="display:flex;gap:5px;flex-wrap:wrap">
+      <button class="btn so"  id="rbso"  onclick="recTog('so')">S/O</button>
+      <button class="btn"     id="rbinv" onclick="recTog('inv')">Inventory</button>
+      <button class="btn wd"  id="rbwd"  onclick="recTog('wd')">Wood</button>
+      <button class="btn mt"  id="rbmt"  onclick="recTog('mt')">Metal</button>
+      <button class="btn gt"  id="rbgt"  onclick="recTog('gate')">Gate</button>
+      <button class="btn"     id="rbunk" onclick="recTog('unk')">Other</button>
+    </div>
+  </div>
+  <div style="overflow-x:auto;border:1px solid var(--b1);border-radius:8px;background:var(--s1)">
+    <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:1020px">
+      <thead id="rec-thead"><tr>
+        <th onclick="recSrt('date')"  id="rhdate">Date</th>
+        <th onclick="recSrt('batch')" id="rhbatch">Batch</th>
+        <th onclick="recSrt('so')"   id="rhso">S/O #</th>
+        <th onclick="recSrt('wt')"   id="rhwt">Traveler</th>
+        <th onclick="recSrt('dept')" id="rhdept">Dept</th>
+        <th onclick="recSrt('code')" id="rhcode">Item Code</th>
+        <th onclick="recSrt('desc')" id="rhdesc">Description</th>
+        <th onclick="recSrt('qty')"  id="rhqty">Qty</th>
+        <th onclick="recSrt('unit')" id="rhunit">Unit Cost</th>
+        <th onclick="recSrt('ext')"  id="rhext">Ext. Cost</th>
+      </tr></thead>
+      <tbody id="rec-tbody">
+        <tr><td colspan="10" style="padding:3rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:12px">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:11px;font-family:var(--mono);color:var(--t3)">
+    <span id="rec-pginfo"></span>
+    <div style="display:flex;gap:5px">
+      <button class="pbtn" id="rec-prev" onclick="recPage(-1)" disabled>← Prev</button>
+      <button class="pbtn" id="rec-next" onclick="recPage(1)">Next →</button>
+    </div>
+  </div>
+</div>
+</div>
+ 
 <div id="scr-db" style="display:none">
 <div class="dbwrap">
   <div id="db-empty-msg">
@@ -314,19 +371,19 @@ tbody td{padding:8px 12px;vertical-align:middle}
   </div>
 </div>
 </div>
-
+ 
 <script>
 // ── SUPABASE CONFIG ──────────────────────────────────────────────────────────
 const SB_URL = 'https://cuiwfcmlgjcrrqclkioz.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1aXdmY21sZ2pjcnJxY2xraW96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNTkzMzksImV4cCI6MjA5NDYzNTMzOX0.Z0aq6FwkGqxyfCXGua86DBhgvgXP0WrWERROc1BTZ1g';
-
+ 
 const sbHeaders = {
   'apikey': SB_KEY,
   'Authorization': 'Bearer ' + SB_KEY,
   'Content-Type': 'application/json',
   'Prefer': 'return=minimal'
 };
-
+ 
 async function sbInsertBatch(rows) {
   const res = await fetch(SB_URL + '/rest/v1/work_tickets', {
     method: 'POST',
@@ -338,7 +395,7 @@ async function sbInsertBatch(rows) {
     throw new Error(err);
   }
 }
-
+ 
 async function sbFetchAll() {
   // Fetch all rows — paginate in chunks of 1000
   let all = [], offset = 0, chunk = 1000;
@@ -355,7 +412,7 @@ async function sbFetchAll() {
   }
   return all;
 }
-
+ 
 async function sbFetchTravelerNumbers() {
   // Just get traveler numbers for duplicate check
   const res = await fetch(
@@ -366,7 +423,7 @@ async function sbFetchTravelerNumbers() {
   const rows = await res.json();
   return new Set(rows.map(r => r.traveler_number));
 }
-
+ 
 async function sbDeleteByBatch(batch) {
   const res = await fetch(
     SB_URL + '/rest/v1/work_tickets?batch=eq.' + encodeURIComponent(batch),
@@ -374,7 +431,7 @@ async function sbDeleteByBatch(batch) {
   );
   if (!res.ok) throw new Error(await res.text());
 }
-
+ 
 async function sbDeleteAll() {
   // Delete all rows — using neq on a column that always has a value
   const res = await fetch(
@@ -383,19 +440,19 @@ async function sbDeleteAll() {
   );
   if (!res.ok) throw new Error(await res.text());
 }
-
+ 
 // ── PDF.JS ───────────────────────────────────────────────────────────────────
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
+ 
 // ── STATE ────────────────────────────────────────────────────────────────────
 let parsed = [], meta = {}, filt = [], pg = 1, pp = 30, sc = null, sd = 1;
 let fso = true, finv = false, fwd = true, fmt = true, fgate = true, funk = false, fq = '';
 let ch1i, ch2i, ch3i, ch4i;
 let dbCache = null; // cached DB rows
-
+ 
 // ── WOOD SET ─────────────────────────────────────────────────────────────────
 const WOOD = new Set(["W2DL4","WMA6","WNE6","WNM6","WOK4","WOK5","WOK6","WT12-2DL","WT12-2SL","WUT-6","CS-CUS","SS-CUS","W1DL4","W1DL5","W1DL6","W1SL4","W1SL5","W1SL6","W2DL4F","W2DL5","W2DL6","W2KA3-1","W2KA4-1","W2KA5-1","W2SL4","W2SL5","W2SL6","W4DL4","W4DL5","W4DL6","W4KA3-1","W4KA4-1","W4KA5-1","W4SL4","W4SL5","W4SL6","WAZ-CUS","WAZ3-2","WAZ4-2","WAZ5-2","WBW-CUS","WBW4","WBW5","WBW6","WCO-CUS","WCO4","WCO5","WCO6","WCT-CUS","WDE-CUS","WDE4-2","WDE4-3","WDL-CUS","WDLARB48","WFI-CUS","WFL-CUS","WFL4","WFL5","WFL6","WHI-CUS","WHI4","WHI5","WHI6","WIL-CUS","WIL3-2","WIL3-3","WIL4-2","WIL4-3","WIL5-2","WIL5-3","WIL6-2","WIL6-3","WKA-CUS","WKY-CUS","WKY4","WKY5","WKY6","WMA-CUS","WMA4","WMA5","WMD-CUS","WMI-CUS","WMN-CUS","WMN4","WMN5","WMN6","WMO-CUS","WMO4","WMO5","WMO6","WMT-CUS","WMT4","WMT5","WMT6","WMT6CBR","WNC-CUS","WND-CUS","WNE-CUS","WNE4","WNE5","WNE7","WNE8","WNH-CUS","WNH4","WNH5","WNH6","WNM-CUS","WNM4","WNM5","WNM7","WNM8","WNV-CUS","WNY-CUS","WNY4","WNY5","WNY6","WOK-CUS","WOK3","WOK7","WOK8","WPA-CUS","WPA4","WPA5","WPA6","WPA7","WPA8","WRI-CUS","WSC-CUS","WSD-CUS","WSL-CUS","WTN-CUS","WTN4","WTN5","WTN6","WTOP-CUS","WUT-4","WUT-5","WUT-7","WUT-8","WUT-CUS","WVT-CUS","WVT4","WVT5","WVT6","WW-CUS","WWI-CUS","CSG-CUS","CSG44","CSG45","CSG54","CSG55","CSG64","CSG65","CSG84","CSG85","RC2G3","RC2G4","RC2G5","RC3G3","RC3G4","RC3G5","SSG-CUS","WATG-CUS","WAZG-CUS","WBIRG-CUS","WBIRG44","WBIRG45","WBIRG54","WBIRG55","WBIRG64","WBIRG65","WBWG-CUS","WCOG-CUS","WCTG-CUS","WDALG-CUS","WDALG44","WDALG45","WDALG54","WDALG55","WDALG64","WDALG65","WDEG-CUS","WDEG44-2","WDEG44-3","WDENG-CUS","WDENG44","WDENG45","WDENG54","WDENG55","WDENG64","WDENG65","WDLG-CUS","WFIG-CUS","WFLG-CUS","WHIG-CUS","WILG-CUS","WILG34-2","WILG34-3","WILG35-2","WILG44-2","WILG44-3","WILG45-2","WILG54-2","WILG55-2","WKAG-CUS","WKYG-CUS","WMAG-CUS","WMDG-CUS","WMNG-CUS","WMOG-CUS","WMTG-CUS","WNCG-CUS","WNDG-CUS","WNEG-CUS","WNHG-CUS","WNMG-CUS","WNOG-CUS","WNORG-CUS","WNORG44","WNORG45","WNORG54","WNORG55","WNORG64","WNORG65","WNVG-CUS","WNYG-CUS","WOKG-CUS","WOKG64","WOKG64-2SL","WOKG65","WOKG65-2SL","WPAG-CUS","WRCG-CUS","WRIG-CUS","WSCG-CUS","WSDG-CUS","WSLG-CUS","WTNG-CUS","WUTG-CUS","WVTG-CUS","WWG-CUS","WWIG-CUS","WWYG-CUS","WWYG64","WWYG65","WGMOUNT-CUS","SP5","SP6","SS4","SS5","SS6","SS8","CS4","CS4-23DR","CS4-24DR","CS5","CS5-23DR","CS6","CS6-23DR","CS8","CSP4","CSP5","CSP6","CSP8","CSSP3","CSSP4","CSSP4-23DR","CSSP4-24DR","CSSP5","CSSPG44","CSSPG45","CSSPG54","CSSPG55","SO-CS","ACQ-CUS","ACQ104","ACQ104H","ACQ105","ACQ105H","ACQ124","ACQ125","ACQ164","ACQ84","ACQ85","ACQ94H","ACQ95","WC-CUS","WC104","WC105","WC106","WC124","WC125","WC84","WC85","WC94","WC95","RC-CUS","RC124","RCC104","RCC94","WC166","WC168","WC238","WC248","WCB-CUS","WCD238","WCD248","RC138","RC144","RC144TG","RC145","RC146","RC148","RC148TG","RC224","RC226","RC228","RC264","RC265","RC268","RC284","RC285","RC286","RC287","RCB-CUS","RCC148","RCC168","RCC268","LGR3","LGR4","LGR5","LGR6","LSR-CUS","LSR2G3","LSR2G4","LSR2G5","LSR3G3","LSR3G4","LSR3G5","LSRG-CUS","PSR11","PSR2G4","PSR3G4","SO-LSR","CPR-CUS","DRC2G4","DRC2G5","DRC3G4","DRC3G5","RC2HC","RC2HE","RC2HL","RC3HC","RC3HE","RC3HL","RCP10","RCP7","RCP8","SO-WARB","WARB-CUS","WARCH36","WARCH42","WARCH48","WARCH60","WARCH72","WPER-CUS","WPER48","WPER60","WPER72"]);
-
+ 
 function mat(c) {
   const u = c.toUpperCase();
   const GP = ["OKG","ILG","SCG","SDG","COG","FLG","HIG","NVG","NCG","CAG","AZG","ALG","CTG","LAG","NJG","ORG","TXG","WAG","2ARG","2HG","3HG","4HG","35KAG","35ARG","35RICG","BWG","OEG","DDLG","DSLG","FIG-","KING","LATG","MADG","RAIG","RICG","PRGM","PRG","PGMOUNT"];
@@ -410,7 +467,7 @@ function mat(c) {
   for (const p of MP) if (u.startsWith(p)) return 'metal';
   return 'other';
 }
-
+ 
 // ── TOAST ────────────────────────────────────────────────────────────────────
 let toastTimer;
 function toast(msg, type = '') {
@@ -420,7 +477,7 @@ function toast(msg, type = '') {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.className = ''; }, 3500);
 }
-
+ 
 function showLoader(msg) {
   document.getElementById('loader-txt').textContent = msg || 'Loading…';
   document.getElementById('loader').classList.add('show');
@@ -428,16 +485,19 @@ function showLoader(msg) {
 function hideLoader() {
   document.getElementById('loader').classList.remove('show');
 }
-
+ 
 // ── NAV ───────────────────────────────────────────────────────────────────────
 function goTo(name) {
-  document.getElementById('scr-import').style.display = name === 'import' ? 'block' : 'none';
-  document.getElementById('scr-db').style.display = name === 'db' ? 'block' : 'none';
-  document.getElementById('tab-import').classList.toggle('on', name === 'import');
-  document.getElementById('tab-db').classList.toggle('on', name === 'db');
-  if (name === 'db') renderDB();
+  document.getElementById('scr-import').style.display  = name === 'import'  ? 'block' : 'none';
+  document.getElementById('scr-records').style.display = name === 'records' ? 'block' : 'none';
+  document.getElementById('scr-db').style.display      = name === 'db'      ? 'block' : 'none';
+  document.getElementById('tab-import').classList.toggle('on',  name === 'import');
+  document.getElementById('tab-records').classList.toggle('on', name === 'records');
+  document.getElementById('tab-db').classList.toggle('on',      name === 'db');
+  if (name === 'db')      renderDB();
+  if (name === 'records') renderRecords();
 }
-
+ 
 // ── DROP ZONE ─────────────────────────────────────────────────────────────────
 const dz = document.getElementById('dropzone');
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
@@ -449,13 +509,13 @@ dz.addEventListener('drop', e => {
   else toast('Please drop a PDF file.', 'err');
 });
 document.getElementById('fi').addEventListener('change', e => { if (e.target.files[0]) runPDF(e.target.files[0]); });
-
+ 
 function sts(msg, spin) {
   const b = document.getElementById('statusbar'); b.style.display = 'flex';
   document.getElementById('stxt').textContent = msg;
   document.getElementById('sdot').className = 'sdot' + (spin ? ' spin' : '');
 }
-
+ 
 // ── PDF PARSING ───────────────────────────────────────────────────────────────
 async function runPDF(file) {
   sts('Reading PDF…', true);
@@ -491,11 +551,11 @@ async function runPDF(file) {
   document.getElementById('mp').textContent = np;
   document.getElementById('metabar').style.display = 'flex';
   sts('Parsing work tickets…', true);
-
+ 
   const wti = [];
   for (let i = 0; i < lines.length; i++)
     if (lines[i].toks.some(t => /^0{5,}\d{5,}$/.test(t))) wti.push(i);
-
+ 
   const entries = [];
   for (let wi = 0; wi < wti.length; wi++) {
     const li = wti[wi], nx = wi + 1 < wti.length ? wti[wi + 1] : lines.length;
@@ -529,10 +589,10 @@ async function runPDF(file) {
     }
     entries.push({ date: jd, wt: wtok.replace(/^0+/, ''), so: so || 'Inventory', isInv, code, desc, qty, unit, ext, material: mat(code) });
   }
-
+ 
   parsed = entries;
   sts('✓ ' + entries.length + ' work tickets parsed · Journal Date: ' + jd, false);
-
+ 
   const sos = new Set(entries.filter(r => !r.isInv).map(r => r.so));
   const tq = entries.reduce((s, r) => s + r.qty, 0);
   const wc = entries.filter(r => r.material === 'wood').reduce((s, r) => s + r.ext, 0);
@@ -550,7 +610,7 @@ async function runPDF(file) {
   document.getElementById('savebtn').style.display = 'inline-block';
   doFilter();
 }
-
+ 
 // ── FORMATTING ────────────────────────────────────────────────────────────────
 function fmt2(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function fmt3(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }); }
@@ -560,7 +620,7 @@ function m2p(m) {
   if (m === 'gate') return '<span class="pill pill-gate">Gate</span>';
   return '<span class="pill pill-other">Other</span>';
 }
-
+ 
 // ── TABLE FILTERING & RENDERING ───────────────────────────────────────────────
 function doFilter() {
   fq = document.getElementById('psearch').value;
@@ -581,7 +641,7 @@ function doFilter() {
   if (sc) filt.sort((a, b) => { const av = a[sc], bv = b[sc]; return (typeof av === 'string' ? av.localeCompare(bv) : av - bv) * sd; });
   pg = 1; drawTable();
 }
-
+ 
 function drawTable() {
   const tb = document.getElementById('tbody');
   const s = (pg - 1) * pp, e = Math.min(s + pp, filt.length);
@@ -604,7 +664,7 @@ function drawTable() {
   document.getElementById('pprev').disabled = pg === 1;
   document.getElementById('pnext').disabled = e >= filt.length;
 }
-
+ 
 function tog(t) {
   if (t === 'so') { fso = !fso; document.getElementById('bso').className = 'btn' + (fso ? ' so' : ''); }
   if (t === 'inv') { finv = !finv; document.getElementById('binv').className = 'btn' + (finv ? ' inv' : ''); }
@@ -614,7 +674,7 @@ function tog(t) {
   if (t === 'unk') { funk = !funk; document.getElementById('bunk').className = 'btn' + (funk ? ' oth' : ''); }
   doFilter();
 }
-
+ 
 function srt(col) {
   if (sc === col) sd *= -1; else { sc = col; sd = 1; }
   document.querySelectorAll('thead th').forEach(th => th.classList.remove('srt'));
@@ -622,10 +682,10 @@ function srt(col) {
   document.getElementById(ids[col]).classList.add('srt');
   doFilter();
 }
-
+ 
 function goPage(d) { pg += d; drawTable(); }
 document.getElementById('psearch').addEventListener('input', doFilter);
-
+ 
 function dlCSV() {
   const h = ['Journal Posting Date', 'S/O Number', 'Traveler (W/T)', 'Department', 'Item Code', 'Description', 'Qty', 'Unit Cost', 'Extended Cost'];
   const rows = parsed.map(r => [r.date, r.so, r.wt, r.material, r.code, '"' + r.desc + '"', r.qty.toFixed(2), r.unit.toFixed(3), r.ext.toFixed(2)]);
@@ -635,21 +695,21 @@ function dlCSV() {
   a.download = 'work_tickets_' + (meta.batch || 'export') + '.csv';
   a.click();
 }
-
+ 
 // ── SAVE TO SUPABASE ──────────────────────────────────────────────────────────
 async function saveToDB() {
   if (!parsed.length) return;
   const btn = document.getElementById('savebtn');
   btn.disabled = true;
   btn.textContent = 'Checking duplicates…';
-
+ 
   try {
     showLoader('Checking for duplicate traveler numbers…');
     const existingWTs = await sbFetchTravelerNumbers();
     const dupes = parsed.filter(r => existingWTs.has(r.wt));
     const newEntries = parsed.filter(r => !existingWTs.has(r.wt));
     hideLoader();
-
+ 
     if (dupes.length > 0 && newEntries.length === 0) {
       toast('All ' + dupes.length + ' traveler #s already in database. Nothing added.', 'err');
       btn.disabled = false; btn.textContent = 'Save to Database →'; return;
@@ -659,9 +719,9 @@ async function saveToDB() {
         btn.disabled = false; btn.textContent = 'Save to Database →'; return;
       }
     }
-
+ 
     const toAdd = dupes.length > 0 ? newEntries : parsed;
-
+ 
     // Convert to Supabase row format
     const rows = toAdd.map(r => {
       let isoDate = null;
@@ -684,7 +744,7 @@ async function saveToDB() {
         extended_cost: Math.round(r.ext * 100) / 100
       };
     });
-
+ 
     // Insert in chunks of 500
     showLoader('Saving ' + rows.length + ' entries to Supabase…');
     const chunkSize = 500;
@@ -692,14 +752,14 @@ async function saveToDB() {
       await sbInsertBatch(rows.slice(i, i + chunkSize));
       document.getElementById('loader-txt').textContent = 'Saved ' + Math.min(i + chunkSize, rows.length) + ' / ' + rows.length + '…';
     }
-
+ 
     hideLoader();
     dbCache = null; // invalidate cache
     await updateBadge();
     toast('✓ ' + rows.length + ' entries saved to Supabase!', 'ok');
     btn.disabled = false; btn.textContent = 'Save to Database →';
     setTimeout(() => goTo('db'), 800);
-
+ 
   } catch (e) {
     hideLoader();
     console.error(e);
@@ -707,7 +767,7 @@ async function saveToDB() {
     btn.disabled = false; btn.textContent = 'Save to Database →';
   }
 }
-
+ 
 // ── DATABASE SCREEN ───────────────────────────────────────────────────────────
 async function renderDB() {
   const empty = document.getElementById('db-empty-msg');
@@ -726,7 +786,7 @@ async function renderDB() {
     toast('Failed to load database: ' + e.message, 'err');
   }
 }
-
+ 
 function buildDB(rows) {
   // Remap from DB format to local format
   const e = rows.map(r => ({
@@ -743,15 +803,15 @@ function buildDB(rows) {
     batch: r.batch,
     created_at: r.created_at
   }));
-
+ 
   const tot = e.reduce((s, r) => s + r.ext, 0);
   const wt = e.filter(r => r.material === 'wood').reduce((s, r) => s + r.ext, 0);
   const mt = e.filter(r => r.material === 'metal').reduce((s, r) => s + r.ext, 0);
   const sos = new Set(e.filter(r => !r.isInv).map(r => r.so));
-
+ 
   // Unique batches
   const batches = [...new Set(e.map(r => r.batch))].filter(Boolean);
-
+ 
   document.getElementById('dbsub').textContent = batches.length + ' batch' + (batches.length !== 1 ? 'es' : '') + ' · ' + e.length.toLocaleString() + ' entries';
   document.getElementById('kv1').textContent = e.length.toLocaleString();
   document.getElementById('ks1').textContent = batches.length + ' batches · ' + sos.size + ' sales orders';
@@ -760,16 +820,16 @@ function buildDB(rows) {
   document.getElementById('ks3').textContent = tot > 0 ? ((wt / tot) * 100).toFixed(1) + '% of total' : '—';
   document.getElementById('kv4').textContent = '$' + fmt2(mt);
   document.getElementById('ks4').textContent = tot > 0 ? ((mt / tot) * 100).toFixed(1) + '% of total' : '—';
-
+ 
   buildCh1(e); buildCh2(e); buildCh3(e); buildTables(e);
   buildBatches(e, batches);
   fillSel(e);
 }
-
+ 
 // ── CHART OPTIONS ─────────────────────────────────────────────────────────────
 function mkey(d) { const p = d.split('/'); return p.length < 3 ? d : p[2] + '-' + p[0].padStart(2, '0'); }
 function mlbl(k) { const [y, m] = k.split('-'); return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m - 1] + ' ' + y; }
-
+ 
 const CO = {
   responsive: true, maintainAspectRatio: false,
   plugins: { legend: { labels: { color: '#8a8980', font: { size: 10, family: "'IBM Plex Mono'" }, boxWidth: 10 } } },
@@ -778,14 +838,14 @@ const CO = {
     y: { ticks: { color: '#5a5956', font: { size: 10, family: "'IBM Plex Mono'" }, callback: v => '$' + v.toLocaleString() }, grid: { color: 'rgba(255,255,255,0.04)' } }
   }
 };
-
+ 
 function buildCh1(e) {
   const bm = {}; e.forEach(r => { const k = mkey(r.date); bm[k] = (bm[k] || 0) + r.ext; });
   const ks = Object.keys(bm).sort();
   if (ch1i) { ch1i.destroy(); ch1i = null; }
   ch1i = new Chart(document.getElementById('ch1'), { type: 'bar', data: { labels: ks.map(mlbl), datasets: [{ label: 'Revenue', data: ks.map(k => bm[k]), backgroundColor: 'rgba(29,158,117,.65)', borderColor: '#1D9E75', borderWidth: 1, borderRadius: 3 }] }, options: CO });
 }
-
+ 
 function buildCh2(e) {
   const bm = {}; e.forEach(r => { const k = mkey(r.date); if (!bm[k]) bm[k] = { wood: 0, metal: 0, gate: 0 }; bm[k][r.material] = (bm[k][r.material] || 0) + r.ext; });
   const ks = Object.keys(bm).sort();
@@ -800,7 +860,7 @@ function buildCh2(e) {
     }, options: CO
   });
 }
-
+ 
 function buildCh3(e) {
   const bc = {}; e.forEach(r => { bc[r.code] = (bc[r.code] || 0) + r.ext; });
   const sorted = Object.entries(bc).sort((a, b) => b[1] - a[1]).slice(0, 15);
@@ -821,7 +881,7 @@ function buildCh3(e) {
     }
   });
 }
-
+ 
 function buildTables(e) {
   const bc = {}; e.forEach(r => { if (!bc[r.code]) bc[r.code] = { code: r.code, qty: 0, rev: 0, m: mat(r.code) }; bc[r.code].qty += r.qty; bc[r.code].rev += r.ext; });
   const all = Object.values(bc);
@@ -839,7 +899,7 @@ function buildTables(e) {
   document.getElementById('tqty').innerHTML = tbl([...all].sort((a, b) => b.qty - a.qty), r => r.qty, mq, false);
   document.getElementById('trev').innerHTML = tbl([...all].sort((a, b) => b.rev - a.rev), r => r.rev, mr, true);
 }
-
+ 
 function buildBatches(e, batches) {
   const bl = document.getElementById('blist');
   if (!batches.length) { bl.innerHTML = '<div style="color:var(--t3);font-size:11px;font-family:var(--mono)">No batches saved.</div>'; return; }
@@ -863,7 +923,7 @@ function buildBatches(e, batches) {
       </div>
     </div>`).join('');
 }
-
+ 
 function fillSel(e) {
   const dept = document.getElementById('deptsel').value;
   const bc = {}; e.forEach(r => { if (!bc[r.code]) bc[r.code] = { rev: 0, m: r.material }; bc[r.code].rev += r.ext; });
@@ -872,9 +932,9 @@ function fillSel(e) {
   sel.innerHTML = '<option value="">Select an item code…</option>' + sorted.map(([c]) => `<option value="${c}">${c}</option>`).join('');
   if (cur && sorted.find(([c]) => c === cur)) { sel.value = cur; drawExplorer(); }
 }
-
+ 
 function refreshSel() { if (dbCache) fillSel(dbCache.map(r => ({ code: r.item_code, material: (r.department || '').toLowerCase(), ext: parseFloat(r.extended_cost) || 0 }))); }
-
+ 
 function drawExplorer() {
   const code = document.getElementById('codesel').value;
   if (!code) {
@@ -922,7 +982,7 @@ function drawExplorer() {
     }
   });
 }
-
+ 
 // ── DELETE / CLEAR ────────────────────────────────────────────────────────────
 async function delBatch(batchNum) {
   if (!confirm('Remove all entries for Batch ' + batchNum + '? This cannot be undone.')) return;
@@ -939,7 +999,7 @@ async function delBatch(batchNum) {
     toast('Error: ' + e.message, 'err');
   }
 }
-
+ 
 async function clearAll() {
   if (!confirm('Delete ALL saved data from Supabase? This cannot be undone.')) return;
   showLoader('Deleting all data…');
@@ -955,7 +1015,7 @@ async function clearAll() {
     toast('Error: ' + e.message, 'err');
   }
 }
-
+ 
 // ── BADGE ─────────────────────────────────────────────────────────────────────
 async function updateBadge() {
   try {
@@ -971,7 +1031,122 @@ async function updateBadge() {
     document.getElementById('nbadge').textContent = '—';
   }
 }
-
+ 
+// ── RECORDS TAB ───────────────────────────────────────────────────────────────
+let recRows = [], recFilt = [], recPg = 1, recPp = 50, recSc = null, recSd = 1;
+let recFso = true, recFinv = true, recFwd = true, recFmt = true, recFgate = true, recFunk = true;
+ 
+async function renderRecords() {
+  document.getElementById('rec-tbody').innerHTML = '<tr><td colspan="10" style="padding:3rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:12px">Loading…</td></tr>';
+  showLoader('Loading records…');
+  try {
+    const raw = await sbFetchAll();
+    hideLoader();
+    recRows = raw.map(r => ({
+      date: r.journal_date ? (r.journal_date.slice(5,7)+'/'+r.journal_date.slice(8,10)+'/'+r.journal_date.slice(0,4)) : '—',
+      batch: r.batch || '—',
+      so: r.so_number || '—',
+      wt: r.traveler_number || '—',
+      dept: (r.department || '').toLowerCase(),
+      code: r.item_code || '—',
+      desc: r.description || '',
+      qty: parseFloat(r.qty) || 0,
+      unit: parseFloat(r.unit_cost) || 0,
+      ext: parseFloat(r.extended_cost) || 0,
+      isInv: r.is_inventory
+    }));
+    // Populate batch dropdown
+    const batches = [...new Set(recRows.map(r => r.batch).filter(Boolean))].sort();
+    const bsel = document.getElementById('rec-batch-sel');
+    bsel.innerHTML = '<option value="">All batches</option>' + batches.map(b => `<option value="${b}">Batch ${b}</option>`).join('');
+    recFilter();
+  } catch(e) {
+    hideLoader();
+    document.getElementById('rec-tbody').innerHTML = `<tr><td colspan="10" style="padding:2rem;text-align:center;color:var(--rd-t);font-family:var(--mono);font-size:11px">Error: ${e.message}</td></tr>`;
+  }
+}
+ 
+function recFilter() {
+  const q = (document.getElementById('recsearch').value || '').toLowerCase();
+  const batchFilter = document.getElementById('rec-batch-sel').value;
+  recFilt = recRows.filter(r => {
+    if (r.isInv  && !recFinv)  return false;
+    if (!r.isInv && !recFso)   return false;
+    if (r.dept === 'wood'  && !recFwd)   return false;
+    if (r.dept === 'metal' && !recFmt)   return false;
+    if (r.dept === 'gate'  && !recFgate) return false;
+    if (r.dept === 'other' && !recFunk)  return false;
+    if (batchFilter && r.batch !== batchFilter) return false;
+    if (q) return r.so.toLowerCase().includes(q) || r.code.toLowerCase().includes(q) ||
+      r.desc.toLowerCase().includes(q) || r.wt.toLowerCase().includes(q) || r.date.includes(q) || r.batch.includes(q);
+    return true;
+  });
+  if (recSc) recFilt.sort((a,b) => {
+    const av = a[recSc], bv = b[recSc];
+    return (typeof av === 'string' ? av.localeCompare(bv) : av - bv) * recSd;
+  });
+  recPg = 1;
+  recDraw();
+  document.getElementById('rec-sub').textContent = recFilt.length.toLocaleString() + ' entries' + (batchFilter ? ' · Batch ' + batchFilter : ' · All batches');
+}
+ 
+function recDraw() {
+  const tb = document.getElementById('rec-tbody');
+  const s = (recPg-1)*recPp, e = Math.min(s+recPp, recFilt.length);
+  if (!recFilt.length) {
+    tb.innerHTML = '<tr><td colspan="10" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">no entries match</td></tr>';
+    document.getElementById('rec-pginfo').textContent = '';
+    document.getElementById('rec-prev').disabled = true;
+    document.getElementById('rec-next').disabled = true;
+    return;
+  }
+  tb.innerHTML = recFilt.slice(s,e).map(r => `<tr style="border-bottom:1px solid var(--b1)">
+    <td class="cdate">${r.date}</td>
+    <td style="font-family:var(--mono);font-size:11px;color:var(--t3)">${r.batch}</td>
+    <td>${r.isInv ? '<span class="pill pill-inv">Inventory</span>' : `<span class="pill pill-so">${r.so}</span>`}</td>
+    <td><span class="pill pill-wt">${r.wt}</span></td>
+    <td>${m2p(r.dept)}</td>
+    <td><span class="ccode">${r.code}</span></td>
+    <td class="cdesc" title="${r.desc}">${r.desc||'—'}</td>
+    <td class="cnum">${r.qty.toFixed(2)}</td>
+    <td class="cnum">$${fmt3(r.unit)}</td>
+    <td class="cext">$${fmt2(r.ext)}</td>
+  </tr>`).join('');
+  document.getElementById('rec-pginfo').textContent = `${s+1}–${e} of ${recFilt.length.toLocaleString()}`;
+  document.getElementById('rec-prev').disabled = recPg === 1;
+  document.getElementById('rec-next').disabled = e >= recFilt.length;
+}
+ 
+function recTog(t) {
+  if (t==='so')   { recFso   = !recFso;   document.getElementById('rbso').className  = 'btn'+(recFso  ?' so':''); }
+  if (t==='inv')  { recFinv  = !recFinv;  document.getElementById('rbinv').className = 'btn'+(recFinv ?'inv':''); }
+  if (t==='wd')   { recFwd   = !recFwd;   document.getElementById('rbwd').className  = 'btn'+(recFwd  ?' wd':''); }
+  if (t==='mt')   { recFmt   = !recFmt;   document.getElementById('rbmt').className  = 'btn'+(recFmt  ?' mt':''); }
+  if (t==='gate') { recFgate = !recFgate; document.getElementById('rbgt').className  = 'btn'+(recFgate?' gt':''); }
+  if (t==='unk')  { recFunk  = !recFunk;  document.getElementById('rbunk').className = 'btn'+(recFunk ?'oth':''); }
+  recFilter();
+}
+ 
+function recSrt(col) {
+  const map = {date:'date',batch:'batch',so:'so',wt:'wt',dept:'dept',code:'code',desc:'desc',qty:'qty',unit:'unit',ext:'ext'};
+  if (recSc === map[col]) recSd *= -1; else { recSc = map[col]; recSd = 1; }
+  document.querySelectorAll('#rec-thead th').forEach(th => th.classList.remove('srt'));
+  document.getElementById('rh'+col).classList.add('srt');
+  recFilter();
+}
+ 
+function recPage(d) { recPg += d; recDraw(); }
+ 
+function dlCSVAll() {
+  if (!recFilt.length) { toast('No records to export.', 'err'); return; }
+  const h = ['Journal Date','Batch','S/O Number','Traveler','Department','Item Code','Description','Qty','Unit Cost','Extended Cost'];
+  const rows = recFilt.map(r => [r.date, r.batch, r.so, r.wt, r.dept, r.code, '"'+r.desc+'"', r.qty.toFixed(2), r.unit.toFixed(3), r.ext.toFixed(2)]);
+  const csv = [h,...rows].map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = 'records_export.csv'; a.click();
+}
+ 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 updateBadge();
 </script>
