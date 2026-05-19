@@ -426,9 +426,16 @@ tbody td{padding:8px 12px;vertical-align:middle}
       <div class="chwrap" id="exchwrap" style="display:none"><canvas id="ch4"></canvas></div>
       <div id="exhint" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">select an item code above to see its monthly trend</div>
     </div>
-    <div class="tworel">
-      <div class="excard" style="margin:0"><div class="excard-t" id="tqty-title">Top Codes by Qty</div><table class="ttable" id="tqty"></table></div>
-      <div class="excard" style="margin:0"><div class="excard-t" id="trev-title">Top Codes by Revenue</div><table class="ttable" id="trev"></table></div>
+    <div class="excard" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="excard-t" id="tcodes-title">Top Codes by Qty</div>
+        <div style="display:flex;gap:5px">
+          <button class="btn mt" id="tbtn-qty" onclick="showTopTable('qty')">Qty</button>
+          <button class="btn" id="tbtn-rev" onclick="showTopTable('rev')">Revenue</button>
+        </div>
+      </div>
+      <table class="ttable" id="tqty"></table>
+      <table class="ttable" id="trev" style="display:none"></table>
     </div>
     <div class="excard">
       <div class="excard-t">Saved Batches</div>
@@ -1201,6 +1208,14 @@ function dlCSVAll() {
   a.download = 'records_export.csv'; a.click();
 }
  
+function showTopTable(which) {
+  document.getElementById('tqty').style.display = which === 'qty' ? '' : 'none';
+  document.getElementById('trev').style.display = which === 'rev' ? '' : 'none';
+  document.getElementById('tcodes-title').textContent = which === 'qty' ? 'Top Codes by Qty' : 'Top Codes by Revenue';
+  document.getElementById('tbtn-qty').className = 'btn' + (which === 'qty' ? ' mt' : '');
+  document.getElementById('tbtn-rev').className = 'btn' + (which === 'rev' ? ' mt' : '');
+}
+ 
 // ── SIDEBAR ───────────────────────────────────────────────────────────────────
 let sidebarOpen = false;
 let activeMonth = null; // null = all, 'YYYY-MM' = filtered
@@ -1228,14 +1243,10 @@ function selectMonth(key) {
   if (lbl) {
     document.getElementById('db-title').textContent = lbl + ' Overview';
     document.getElementById('ch3-title').textContent = 'Top 15 Item Codes — ' + lbl;
-    document.getElementById('tqty-title').textContent = 'Top Codes by Qty — ' + lbl;
-    document.getElementById('trev-title').textContent = 'Top Codes by Revenue — ' + lbl;
     document.getElementById('ks2').textContent = lbl;
   } else {
     document.getElementById('db-title').textContent = 'Set Month Overview';
     document.getElementById('ch3-title').textContent = 'Top 15 Item Codes — All-Time Revenue';
-    document.getElementById('tqty-title').textContent = 'Top Codes by Qty';
-    document.getElementById('trev-title').textContent = 'Top Codes by Revenue';
     document.getElementById('ks2').textContent = 'All time';
   }
   updateKPIs(filtered);
