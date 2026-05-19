@@ -187,6 +187,47 @@ tbody td{padding:8px 12px;vertical-align:middle}
 #rec-thead th:hover{color:var(--t1)}
 #rec-thead th.srt{color:var(--gr2)}
  
+/* ANALYTICS LAYOUT */
+.db-layout{display:flex;gap:0;position:relative}
+.db-main{flex:1;min-width:0;padding-right:0;transition:padding-right .3s}
+.db-main.shifted{padding-right:320px}
+ 
+/* MONTH SIDEBAR */
+#month-sidebar{position:fixed;top:48px;right:0;width:320px;height:calc(100vh - 48px);background:#0a0a09;border-left:1px solid var(--b1);z-index:90;transform:translateX(100%);transition:transform .3s;overflow-y:auto;display:flex;flex-direction:column}
+#month-sidebar.open{transform:translateX(0)}
+.msb-header{padding:14px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#0a0a09;z-index:1}
+.msb-title{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--t1);text-transform:uppercase;letter-spacing:.06em}
+.msb-close{background:none;border:none;color:var(--t3);cursor:pointer;font-size:18px;line-height:1;padding:2px 6px;border-radius:4px}
+.msb-close:hover{color:var(--t1);background:var(--s2)}
+.msb-all{margin:10px 12px;padding:8px 12px;border-radius:6px;border:1px solid var(--b2);background:var(--s1);color:var(--t2);font-family:var(--mono);font-size:11px;cursor:pointer;text-align:left;width:calc(100% - 24px);transition:all .15s}
+.msb-all:hover{background:var(--s2);color:var(--t1)}
+.msb-all.active{background:var(--gr-bg);border-color:rgba(232,124,46,.3);color:var(--gr2)}
+.msb-year{margin:0 12px 4px;font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;padding:8px 0 4px;border-top:1px solid var(--b1)}
+.msb-year:first-of-type{border-top:none}
+.msb-month{width:calc(100% - 24px);margin:0 12px 3px;padding:0;border:1px solid transparent;border-radius:6px;background:transparent;cursor:pointer;text-align:left;transition:all .15s;overflow:hidden}
+.msb-month:hover .msb-m-top{background:var(--s2)}
+.msb-month.active .msb-m-top{background:var(--gr-bg);border-radius:5px 5px 0 0}
+.msb-month.active{border-color:rgba(232,124,46,.25);border-radius:6px}
+.msb-m-top{padding:8px 12px;display:flex;align-items:center;justify-content:space-between;border-radius:5px;transition:background .15s}
+.msb-m-label{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--t1)}
+.msb-m-rev{font-family:var(--mono);font-size:11px;color:var(--gr2);font-weight:600}
+.msb-m-detail{padding:8px 12px 10px;background:var(--s1);border-radius:0 0 5px 5px;display:none}
+.msb-month.active .msb-m-detail{display:block}
+.msb-dept-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;padding:2px 0;color:var(--t2)}
+.msb-dept-row span:first-child{color:var(--t3)}
+.msb-codes-title{font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;border-top:1px solid var(--b1);padding-top:8px}
+.msb-code-row{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:10px;padding:2px 0;color:var(--t2)}
+.msb-code-row .msb-code-name{color:var(--gr2)}
+.msb-code-row .msb-code-val{color:var(--t1)}
+ 
+/* SIDEBAR TOGGLE BUTTON */
+#sidebar-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#0a0a09;border:1px solid var(--b1);border-right:none;border-radius:6px 0 0 6px;padding:12px 6px;cursor:pointer;z-index:91;display:flex;flex-direction:column;align-items:center;gap:4px;transition:background .15s}
+#sidebar-toggle:hover{background:var(--s1)}
+#sidebar-toggle svg{width:14px;height:14px;stroke:var(--t2);fill:none;stroke-width:2}
+#sidebar-toggle span{font-family:var(--mono);font-size:9px;color:var(--t3);writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:.08em;text-transform:uppercase}
+#sidebar-toggle.open svg{stroke:var(--gr2)}
+#sidebar-toggle.open span{color:var(--gr2)}
+ 
 </style>
 </head>
 <body>
@@ -198,7 +239,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
   <span class="logo">AII <span>/ Work Tickets</span></span>
   <button class="ntab on" id="tab-import"  onclick="goTo('import')">Import PDF</button>
   <button class="ntab"    id="tab-records" onclick="goTo('records')">Records</button>
-  <button class="ntab"    id="tab-db"      onclick="goTo('db')">Analytics</button>
+  <button class="ntab"    id="tab-db"      onclick="goTo('db')">Set Month Overview</button>
   <span class="nbadge" id="nbadge">—</span>
 </nav>
  
@@ -324,6 +365,23 @@ tbody td{padding:8px 12px;vertical-align:middle}
 </div>
  
 <div id="scr-db" style="display:none">
+ 
+<!-- SIDEBAR TOGGLE -->
+<button id="sidebar-toggle" onclick="toggleSidebar()">
+  <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+  <span id="toggle-label">Months</span>
+</button>
+ 
+<!-- MONTH SIDEBAR -->
+<div id="month-sidebar">
+  <div class="msb-header">
+    <span class="msb-title">Monthly Overview</span>
+    <button class="msb-close" onclick="toggleSidebar()">×</button>
+  </div>
+  <button class="msb-all active" id="msb-all-btn" onclick="selectMonth(null)">All months</button>
+  <div id="msb-list"></div>
+</div>
+ 
 <div class="dbwrap">
   <div id="db-empty-msg">
     <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
@@ -332,20 +390,20 @@ tbody td{padding:8px 12px;vertical-align:middle}
   </div>
   <div id="db-data" style="display:none">
     <div class="dbhead">
-      <div><h2>Work Ticket Database</h2><p id="dbsub">—</p></div>
+      <div><h2 id="db-title">Set Month Overview</h2><p id="dbsub">—</p></div>
       <button class="clrbtn" onclick="clearAll()">Clear all data</button>
     </div>
     <div class="kpis" style="grid-template-columns:repeat(5,1fr)">
       <div class="kpi"><div class="kpi-l">Total Entries</div><div class="kpi-v" id="kv1">—</div><div class="kpi-s" id="ks1">—</div></div>
-      <div class="kpi"><div class="kpi-l">Total Revenue</div><div class="kpi-v g" id="kv2">—</div><div class="kpi-s">All batches</div></div>
+      <div class="kpi"><div class="kpi-l">Total Revenue</div><div class="kpi-v g" id="kv2">—</div><div class="kpi-s" id="ks2">All time</div></div>
       <div class="kpi"><div class="kpi-l">Wood Revenue</div><div class="kpi-v w" id="kv3">—</div><div class="kpi-s" id="ks3">—</div></div>
       <div class="kpi"><div class="kpi-l">Metal Revenue</div><div class="kpi-v b" id="kv4">—</div><div class="kpi-s" id="ks4">—</div></div>
       <div class="kpi"><div class="kpi-l">Gate Revenue</div><div class="kpi-v gt" id="kv5">—</div><div class="kpi-s" id="ks5">—</div></div>
     </div>
     <div class="cgrid">
       <div class="card"><div class="card-t">Revenue by Month</div><div class="card-s">Total extended cost per month</div><div class="chwrap"><canvas id="ch1"></canvas></div></div>
-      <div class="card"><div class="card-t">Wood vs Metal by Month</div><div class="card-s">Department split over time</div><div class="chwrap"><canvas id="ch2"></canvas></div></div>
-      <div class="card full"><div class="card-t">Top 15 Item Codes — All-Time Revenue</div><div class="card-s">Ranked by total extended cost</div><div class="chwrap tall"><canvas id="ch3"></canvas></div></div>
+      <div class="card"><div class="card-t">Wood vs Metal vs Gate by Month</div><div class="card-s">Department split over time</div><div class="chwrap"><canvas id="ch2"></canvas></div></div>
+      <div class="card full"><div class="card-t" id="ch3-title">Top 15 Item Codes — All-Time Revenue</div><div class="card-s">Ranked by total extended cost</div><div class="chwrap tall"><canvas id="ch3"></canvas></div></div>
     </div>
     <div class="excard">
       <div class="excard-t">Item Code Explorer</div>
@@ -362,8 +420,8 @@ tbody td{padding:8px 12px;vertical-align:middle}
       <div id="exhint" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">select an item code above to see its monthly trend</div>
     </div>
     <div class="tworel">
-      <div class="excard" style="margin:0"><div class="excard-t">Top Codes by Qty</div><table class="ttable" id="tqty"></table></div>
-      <div class="excard" style="margin:0"><div class="excard-t">Top Codes by Revenue</div><table class="ttable" id="trev"></table></div>
+      <div class="excard" style="margin:0"><div class="excard-t" id="tqty-title">Top Codes by Qty</div><table class="ttable" id="tqty"></table></div>
+      <div class="excard" style="margin:0"><div class="excard-t" id="trev-title">Top Codes by Revenue</div><table class="ttable" id="trev"></table></div>
     </div>
     <div class="excard">
       <div class="excard-t">Saved Batches</div>
@@ -791,45 +849,27 @@ async function renderDB() {
 }
  
 function buildDB(rows) {
-  // Remap from DB format to local format
   const e = rows.map(r => ({
     date: r.journal_date ? (r.journal_date.slice(5, 7) + '/' + r.journal_date.slice(8, 10) + '/' + r.journal_date.slice(0, 4)) : '—',
-    wt: r.traveler_number,
-    so: r.so_number,
-    isInv: r.is_inventory,
-    code: r.item_code,
-    desc: r.description,
-    qty: parseFloat(r.qty) || 0,
-    unit: parseFloat(r.unit_cost) || 0,
-    ext: parseFloat(r.extended_cost) || 0,
-    material: (r.department || '').toLowerCase(),
-    batch: r.batch,
-    created_at: r.created_at
+    wt: r.traveler_number, so: r.so_number, isInv: r.is_inventory,
+    code: r.item_code, desc: r.description,
+    qty: parseFloat(r.qty) || 0, unit: parseFloat(r.unit_cost) || 0, ext: parseFloat(r.extended_cost) || 0,
+    material: (r.department || '').toLowerCase(), batch: r.batch, created_at: r.created_at
   }));
  
-  const tot = e.reduce((s, r) => s + r.ext, 0);
-  const wt = e.filter(r => r.material === 'wood').reduce((s, r) => s + r.ext, 0);
-  const mt = e.filter(r => r.material === 'metal').reduce((s, r) => s + r.ext, 0);
-  const gt = e.filter(r => r.material === 'gate').reduce((s, r) => s + r.ext, 0);
-  const sos = new Set(e.filter(r => !r.isInv).map(r => r.so));
+  allDbEntries = e;
+  activeMonth = null;
+  document.getElementById('db-title').textContent = 'Set Month Overview';
+  document.getElementById('ks2').textContent = 'All time';
  
-  // Unique batches
   const batches = [...new Set(e.map(r => r.batch))].filter(Boolean);
- 
   document.getElementById('dbsub').textContent = batches.length + ' batch' + (batches.length !== 1 ? 'es' : '') + ' · ' + e.length.toLocaleString() + ' entries';
-  document.getElementById('kv1').textContent = e.length.toLocaleString();
-  document.getElementById('ks1').textContent = batches.length + ' batches · ' + sos.size + ' sales orders';
-  document.getElementById('kv2').textContent = '$' + fmt2(tot);
-  document.getElementById('kv3').textContent = '$' + fmt2(wt);
-  document.getElementById('ks3').textContent = tot > 0 ? ((wt / tot) * 100).toFixed(1) + '% of total' : '—';
-  document.getElementById('kv4').textContent = '$' + fmt2(mt);
-  document.getElementById('ks4').textContent = tot > 0 ? ((mt / tot) * 100).toFixed(1) + '% of total' : '—';
-  document.getElementById('kv5').textContent = '$' + fmt2(gt);
-  document.getElementById('ks5').textContent = tot > 0 ? ((gt / tot) * 100).toFixed(1) + '% of total' : '—';
  
+  updateKPIs(e);
   buildCh1(e); buildCh2(e); buildCh3(e); buildTables(e);
   buildBatches(e, batches);
   fillSel(e);
+  buildSidebar(e);
 }
  
 // ── CHART OPTIONS ─────────────────────────────────────────────────────────────
@@ -1151,6 +1191,115 @@ function dlCSVAll() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download = 'records_export.csv'; a.click();
+}
+ 
+// ── SIDEBAR ───────────────────────────────────────────────────────────────────
+let sidebarOpen = false;
+let activeMonth = null; // null = all, 'YYYY-MM' = filtered
+let allDbEntries = [];
+ 
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('month-sidebar').classList.toggle('open', sidebarOpen);
+  document.getElementById('sidebar-toggle').classList.toggle('open', sidebarOpen);
+  document.getElementById('toggle-label').textContent = sidebarOpen ? 'Close' : 'Months';
+  // Shift main content
+  document.querySelector('.dbwrap').style.paddingRight = sidebarOpen ? '328px' : '0';
+}
+ 
+function selectMonth(key) {
+  activeMonth = key;
+  // Update active states in sidebar
+  document.getElementById('msb-all-btn').classList.toggle('active', key === null);
+  document.querySelectorAll('.msb-month').forEach(el => {
+    el.classList.toggle('active', el.dataset.key === key);
+  });
+  // Re-render with filtered data
+  const filtered = key ? allDbEntries.filter(r => mkey(r.date) === key) : allDbEntries;
+  const lbl = key ? mlbl(key) : null;
+  if (lbl) {
+    document.getElementById('db-title').textContent = lbl + ' Overview';
+    document.getElementById('ch3-title').textContent = 'Top 15 Item Codes — ' + lbl;
+    document.getElementById('tqty-title').textContent = 'Top Codes by Qty — ' + lbl;
+    document.getElementById('trev-title').textContent = 'Top Codes by Revenue — ' + lbl;
+    document.getElementById('ks2').textContent = lbl;
+  } else {
+    document.getElementById('db-title').textContent = 'Set Month Overview';
+    document.getElementById('ch3-title').textContent = 'Top 15 Item Codes — All-Time Revenue';
+    document.getElementById('tqty-title').textContent = 'Top Codes by Qty';
+    document.getElementById('trev-title').textContent = 'Top Codes by Revenue';
+    document.getElementById('ks2').textContent = 'All time';
+  }
+  updateKPIs(filtered);
+  buildCh1(filtered);
+  buildCh2(filtered);
+  buildCh3(filtered);
+  buildTables(filtered);
+  fillSel(filtered);
+}
+ 
+function buildSidebar(entries) {
+  // Group by month key
+  const byMonth = {};
+  entries.forEach(r => {
+    const k = mkey(r.date);
+    if (!byMonth[k]) byMonth[k] = { entries: [], wood: 0, metal: 0, gate: 0, other: 0, total: 0, codes: {} };
+    byMonth[k].entries.push(r);
+    byMonth[k].total += r.ext;
+    byMonth[k][r.material] = (byMonth[k][r.material] || 0) + r.ext;
+    if (!byMonth[k].codes[r.code]) byMonth[k].codes[r.code] = { rev: 0, qty: 0 };
+    byMonth[k].codes[r.code].rev += r.ext;
+    byMonth[k].codes[r.code].qty += r.qty;
+  });
+ 
+  const keys = Object.keys(byMonth).sort().reverse(); // newest first
+  const list = document.getElementById('msb-list');
+ 
+  // Group by year
+  const byYear = {};
+  keys.forEach(k => { const y = k.split('-')[0]; if (!byYear[y]) byYear[y] = []; byYear[y].push(k); });
+ 
+  list.innerHTML = Object.keys(byYear).sort().reverse().map(year => {
+    const monthBtns = byYear[year].map(k => {
+      const d = byMonth[k];
+      const topRev = Object.entries(d.codes).sort((a,b) => b[1].rev - a[1].rev).slice(0,5);
+      const topQty = Object.entries(d.codes).sort((a,b) => b[1].qty - a[1].qty).slice(0,5);
+      return `<button class="msb-month" data-key="${k}" onclick="selectMonth('${k}')">
+        <div class="msb-m-top">
+          <span class="msb-m-label">${mlbl(k)}</span>
+          <span class="msb-m-rev">$${fmt2(d.total)}</span>
+        </div>
+        <div class="msb-m-detail">
+          <div class="msb-dept-row"><span>Wood</span><span style="color:#4cd68a">$${fmt2(d.wood||0)}</span></div>
+          <div class="msb-dept-row"><span>Metal</span><span style="color:var(--bl-t)">$${fmt2(d.metal||0)}</span></div>
+          <div class="msb-dept-row"><span>Gate</span><span style="color:var(--gate-t)">$${fmt2(d.gate||0)}</span></div>
+          <div class="msb-codes-title">Top by Revenue</div>
+          ${topRev.map(([c,v]) => `<div class="msb-code-row"><span class="msb-code-name">${c}</span><span class="msb-code-val">$${fmt2(v.rev)}</span></div>`).join('')}
+          <div class="msb-codes-title">Top by Qty</div>
+          ${topQty.map(([c,v]) => `<div class="msb-code-row"><span class="msb-code-name">${c}</span><span class="msb-code-val">${v.qty.toLocaleString()}</span></div>`).join('')}
+        </div>
+      </button>`;
+    }).join('');
+    return `<div class="msb-year">${year}</div>${monthBtns}`;
+  }).join('');
+}
+ 
+function updateKPIs(e) {
+  const tot = e.reduce((s, r) => s + r.ext, 0);
+  const wt  = e.filter(r => r.material === 'wood').reduce((s, r) => s + r.ext, 0);
+  const mt  = e.filter(r => r.material === 'metal').reduce((s, r) => s + r.ext, 0);
+  const gt  = e.filter(r => r.material === 'gate').reduce((s, r) => s + r.ext, 0);
+  const sos = new Set(e.filter(r => !r.isInv).map(r => r.so));
+  const batches = [...new Set(e.map(r => r.batch))].filter(Boolean);
+  document.getElementById('kv1').textContent = e.length.toLocaleString();
+  document.getElementById('ks1').textContent = batches.length + ' batch' + (batches.length !== 1 ? 'es' : '') + ' · ' + sos.size + ' sales orders';
+  document.getElementById('kv2').textContent = '$' + fmt2(tot);
+  document.getElementById('kv3').textContent = '$' + fmt2(wt);
+  document.getElementById('ks3').textContent = tot > 0 ? ((wt / tot) * 100).toFixed(1) + '% of total' : '—';
+  document.getElementById('kv4').textContent = '$' + fmt2(mt);
+  document.getElementById('ks4').textContent = tot > 0 ? ((mt / tot) * 100).toFixed(1) + '% of total' : '—';
+  document.getElementById('kv5').textContent = '$' + fmt2(gt);
+  document.getElementById('ks5').textContent = tot > 0 ? ((gt / tot) * 100).toFixed(1) + '% of total' : '—';
 }
  
 // ── INIT ──────────────────────────────────────────────────────────────────────
