@@ -611,12 +611,41 @@ async function runPDF(file) {
     }
   }
   const full = lines.map(l => l.raw).join('\n');
-  const bM = full.match(/Batch\s*(?:Number:?)?\s*(\d+)/i);
+ 
+  // PDF.js splits "15539" (Y=96) and "Batch Number:" (Y=97) onto adjacent lines.
+  // Strategy: find the line containing "Batch Number:" then check the line just before and after it.
+  let batchNum = '—';
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i].raw;
+    // Case 1: "Batch Number:15539" all on one line
+    const inline = raw.match(/Batch\s+Number:(\d{4,6})/i);
+    if (inline) { batchNum = inline[1]; break; }
+    // Case 2: line is "Batch Number:" and adjacent line is just the digits
+    if (/Batch\s+Number:?\s*$/i.test(raw)) {
+      // Check prev and next lines for a standalone number
+      for (const adj of [lines[i-1], lines[i+1]]) {
+        if (adj && /^\d{4,6}$/.test(adj.raw.trim())) {
+          batchNum = adj.raw.trim(); break;
+        }
+      }
+      if (batchNum !== '—') break;
+    }
+    // Case 3: line is just digits and adjacent line contains "Batch"
+    if (/^\d{4,6}$/.test(raw.trim())) {
+      for (const adj of [lines[i-1], lines[i+1]]) {
+        if (adj && /batch/i.test(adj.raw)) {
+          batchNum = raw.trim(); break;
+        }
+      }
+      if (batchNum !== '—') break;
+    }
+  }
+ 
   const rM = full.match(/Register\s+Number:\s*([\w-]+)/i);
   const tM = full.match(/Trans\s+Number:\s*(\d+)/i);
   const jM = full.match(/Journal\s+Posting\s+Date:\s*(\d{1,2}\/\d{1,2}\/\d{4})/i);
   const jd = jM ? jM[1] : '—';
-  meta = { batch: bM?.[1] || '—', reg: rM?.[1] || '—', trans: tM?.[1] || '—', date: jd, pages: np, file: file.name };
+  meta = { batch: batchNum, reg: rM?.[1] || '—', trans: tM?.[1] || '—', date: jd, pages: np, file: file.name };
   document.getElementById('mb').textContent = meta.batch;
   document.getElementById('mr').textContent = meta.reg;
   document.getElementById('mt').textContent = meta.trans;
