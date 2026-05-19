@@ -335,11 +335,12 @@ tbody td{padding:8px 12px;vertical-align:middle}
       <div><h2>Work Ticket Database</h2><p id="dbsub">—</p></div>
       <button class="clrbtn" onclick="clearAll()">Clear all data</button>
     </div>
-    <div class="kpis">
+    <div class="kpis" style="grid-template-columns:repeat(5,1fr)">
       <div class="kpi"><div class="kpi-l">Total Entries</div><div class="kpi-v" id="kv1">—</div><div class="kpi-s" id="ks1">—</div></div>
       <div class="kpi"><div class="kpi-l">Total Revenue</div><div class="kpi-v g" id="kv2">—</div><div class="kpi-s">All batches</div></div>
       <div class="kpi"><div class="kpi-l">Wood Revenue</div><div class="kpi-v w" id="kv3">—</div><div class="kpi-s" id="ks3">—</div></div>
       <div class="kpi"><div class="kpi-l">Metal Revenue</div><div class="kpi-v b" id="kv4">—</div><div class="kpi-s" id="ks4">—</div></div>
+      <div class="kpi"><div class="kpi-l">Gate Revenue</div><div class="kpi-v gt" id="kv5">—</div><div class="kpi-s" id="ks5">—</div></div>
     </div>
     <div class="cgrid">
       <div class="card"><div class="card-t">Revenue by Month</div><div class="card-s">Total extended cost per month</div><div class="chwrap"><canvas id="ch1"></canvas></div></div>
@@ -807,6 +808,7 @@ function buildDB(rows) {
   const tot = e.reduce((s, r) => s + r.ext, 0);
   const wt = e.filter(r => r.material === 'wood').reduce((s, r) => s + r.ext, 0);
   const mt = e.filter(r => r.material === 'metal').reduce((s, r) => s + r.ext, 0);
+  const gt = e.filter(r => r.material === 'gate').reduce((s, r) => s + r.ext, 0);
   const sos = new Set(e.filter(r => !r.isInv).map(r => r.so));
  
   // Unique batches
@@ -820,6 +822,8 @@ function buildDB(rows) {
   document.getElementById('ks3').textContent = tot > 0 ? ((wt / tot) * 100).toFixed(1) + '% of total' : '—';
   document.getElementById('kv4').textContent = '$' + fmt2(mt);
   document.getElementById('ks4').textContent = tot > 0 ? ((mt / tot) * 100).toFixed(1) + '% of total' : '—';
+  document.getElementById('kv5').textContent = '$' + fmt2(gt);
+  document.getElementById('ks5').textContent = tot > 0 ? ((gt / tot) * 100).toFixed(1) + '% of total' : '—';
  
   buildCh1(e); buildCh2(e); buildCh3(e); buildTables(e);
   buildBatches(e, batches);
