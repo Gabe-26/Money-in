@@ -228,7 +228,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
     <div class="sc"><div class="scl">Gate Cost</div><div class="scv gt" id="sv6">—</div></div>
   </div>
   <div id="pcontrols">
-    <input id="psearch" placeholder="search date, s/o, traveler, code, description…"/>
+    <input id="psearch" placeholder="search batch, date, s/o, traveler, code, description…"/>
     <div class="cright">
       <button class="btn so"  id="bso"   onclick="tog('so')">S/O</button>
       <button class="btn"     id="binv"  onclick="tog('inv')">Inventory</button>
@@ -244,6 +244,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
     <table>
       <thead><tr>
         <th onclick="srt('date')"     id="hdate">Date</th>
+        <th onclick="srt('batch')"    id="hbatch">Batch</th>
         <th onclick="srt('so')"       id="hso">S/O #</th>
         <th onclick="srt('wt')"       id="hwt">Traveler</th>
         <th onclick="srt('material')" id="hmat">Dept</th>
@@ -254,7 +255,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
         <th onclick="srt('ext')"      id="hext">Ext. Cost</th>
       </tr></thead>
       <tbody id="tbody">
-        <tr><td colspan="9" style="padding:3rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:12px">Drop a Work Ticket Register PDF above to populate the table</td></tr>
+        <tr><td colspan="10" style="padding:3rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:12px">Drop a Work Ticket Register PDF above to populate the table</td></tr>
       </tbody>
     </table>
   </div>
@@ -587,7 +588,7 @@ async function runPDF(file) {
         if (dt.length) { desc = dt.join(' ').replace(/^\*/, '').trim(); break; }
       }
     }
-    entries.push({ date: jd, wt: wtok.replace(/^0+/, ''), so: so || 'Inventory', isInv, code, desc, qty, unit, ext, material: mat(code) });
+    entries.push({ date: jd, batch: meta.batch, wt: wtok.replace(/^0+/, ''), so: so || 'Inventory', isInv, code, desc, qty, unit, ext, material: mat(code) });
   }
  
   parsed = entries;
@@ -634,7 +635,8 @@ function doFilter() {
     if (fq) {
       const q = fq.toLowerCase();
       return r.so.toLowerCase().includes(q) || r.code.toLowerCase().includes(q) ||
-        r.desc.toLowerCase().includes(q) || r.wt.includes(q) || r.date.includes(q);
+        r.desc.toLowerCase().includes(q) || r.wt.includes(q) || r.date.includes(q) ||
+        (r.batch || '').toLowerCase().includes(q);
     }
     return true;
   });
@@ -646,11 +648,12 @@ function drawTable() {
   const tb = document.getElementById('tbody');
   const s = (pg - 1) * pp, e = Math.min(s + pp, filt.length);
   if (!filt.length) {
-    tb.innerHTML = '<tr><td colspan="9" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">no entries match</td></tr>';
+    tb.innerHTML = '<tr><td colspan="10" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">no entries match</td></tr>';
     return;
   }
   tb.innerHTML = filt.slice(s, e).map(r => `<tr>
     <td class="cdate">${r.date}</td>
+    <td style="font-family:var(--mono);font-size:11px;color:var(--t3)">${r.batch || '—'}</td>
     <td>${r.isInv ? '<span class="pill pill-inv">Inventory</span>' : `<span class="pill pill-so">${r.so}</span>`}</td>
     <td><span class="pill pill-wt">${r.wt}</span></td>
     <td>${m2p(r.material)}</td>
@@ -678,7 +681,7 @@ function tog(t) {
 function srt(col) {
   if (sc === col) sd *= -1; else { sc = col; sd = 1; }
   document.querySelectorAll('thead th').forEach(th => th.classList.remove('srt'));
-  const ids = { date: 'hdate', so: 'hso', wt: 'hwt', material: 'hmat', code: 'hcode', desc: 'hdesc', qty: 'hqty', unit: 'hunit', ext: 'hext' };
+  const ids = { date: 'hdate', batch: 'hbatch', so: 'hso', wt: 'hwt', material: 'hmat', code: 'hcode', desc: 'hdesc', qty: 'hqty', unit: 'hunit', ext: 'hext' };
   document.getElementById(ids[col]).classList.add('srt');
   doFilter();
 }
