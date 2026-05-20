@@ -1675,11 +1675,12 @@ function ttAcInput() {
     return;
   }
   drop.innerHTML = matches.map(function(c, i){
-    return '<div class="tt-ac-item" data-idx="' + i + '" data-code="' + c.item_code + '" onmousedown="ttAcSelectEl(this)">';
-      + '<span class="tt-ac-code">' + c.item_code + '</span>'
-      + '<span class="tt-ac-desc">' + (c.description||'') + '</span>'
-      + '<span class="tt-ac-dept">' + deptPill((c.department||'').toLowerCase()) + '</span>'
-      + '</div>';
+    var html = '<div class="tt-ac-item" data-idx="' + i + '" data-code="' + c.item_code + '" onmousedown="ttAcSelectEl(this)">';
+    html += '<span class="tt-ac-code">' + c.item_code + '</span>';
+    html += '<span class="tt-ac-desc">' + (c.description || '') + '</span>';
+    html += '<span class="tt-ac-dept">' + deptPill((c.department || '').toLowerCase()) + '</span>';
+    html += '</div>';
+    return html;
   }).join('');
   drop.classList.add('open');
   drop._matches = matches;
