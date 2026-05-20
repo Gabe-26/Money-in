@@ -241,9 +241,10 @@ tbody td{padding:8px 12px;vertical-align:middle}
 .tt-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
 .tt-header h2{font-size:17px;font-weight:600;margin-bottom:3px}
 .tt-header p{font-size:11px;font-family:var(--mono);color:var(--t3)}
-.tt-form-card{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:18px 20px;margin-bottom:1.4rem}
+.tt-form-card{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:18px 20px;margin-bottom:1.4rem;overflow:visible}
 .tt-form-title{font-size:12px;font-weight:600;font-family:var(--mono);color:var(--t1);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
-.tt-form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:14px}
+.tt-form-grid{display:grid;grid-template-columns:160px 170px 1fr 150px 120px 150px;gap:10px;margin-bottom:14px}
+@media(max-width:900px){.tt-form-grid{grid-template-columns:1fr 1fr 1fr}}
 .tt-form-group{display:flex;flex-direction:column;gap:5px}
 .tt-form-group label{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
 .tt-input{padding:7px 10px;border:1px solid var(--b2);border-radius:5px;background:var(--s2);color:var(--t1);font-size:12px;font-family:var(--mono);transition:border-color .15s}
@@ -290,13 +291,14 @@ tbody td{padding:8px 12px;vertical-align:middle}
  
 /* ── STOCK CODE LIBRARY ── */
 .tt-ac-wrap{position:relative}
-.tt-ac-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--s2);border:1px solid var(--b2);border-radius:0 0 6px 6px;z-index:50;max-height:220px;overflow-y:auto;display:none}
+.tt-ac-dropdown{position:absolute;top:calc(100% + 2px);left:0;right:0;min-width:340px;background:#1a1a18;border:1px solid var(--gr);border-radius:6px;z-index:200;max-height:260px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,.6)}
 .tt-ac-dropdown.open{display:block}
-.tt-ac-item{padding:8px 10px;cursor:pointer;font-family:var(--mono);font-size:11px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px}
+.tt-ac-empty{padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--t3);text-align:center}
+.tt-ac-item{padding:10px 14px;cursor:pointer;font-family:var(--mono);font-size:12px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px}
 .tt-ac-item:last-child{border-bottom:none}
-.tt-ac-item:hover,.tt-ac-item.active{background:var(--gr-bg)}
-.tt-ac-code{color:var(--gr2);font-weight:700;min-width:80px}
-.tt-ac-desc{color:var(--t2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tt-ac-item:hover,.tt-ac-item.active{background:rgba(232,124,46,0.15)}
+.tt-ac-code{color:var(--gr2);font-weight:700;min-width:90px;font-size:13px}
+.tt-ac-desc{color:var(--t1);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tt-ac-dept{font-size:10px;flex-shrink:0}
  
 /* Stock code manager modal */
@@ -1648,11 +1650,20 @@ function ttAcInput() {
   var val = document.getElementById('tt-f-code').value.trim().toUpperCase();
   var drop = document.getElementById('tt-ac-drop');
   ttAcIdx = -1;
-  if (!val || !scCodes.length) { drop.classList.remove('open'); drop.innerHTML = ''; return; }
+  if (!scCodes.length) {
+    drop.innerHTML = '<div class="tt-ac-empty">No stock codes yet. Click Stock Codes to add them.</div>';
+    drop.classList.add('open');
+    return;
+  }
+  if (!val) { drop.classList.remove('open'); drop.innerHTML = ''; return; }
   var matches = scCodes.filter(function(c){
     return c.item_code.toUpperCase().startsWith(val) || c.item_code.toUpperCase().includes(val) || (c.description||'').toUpperCase().includes(val);
   }).slice(0, 10);
-  if (!matches.length) { drop.classList.remove('open'); drop.innerHTML = ''; return; }
+  if (!matches.length) { 
+    drop.innerHTML = '<div class="tt-ac-empty">No matches. Add codes via Stock Codes button.</div>';
+    drop.classList.add('open');
+    return;
+  }
   drop.innerHTML = matches.map(function(c, i){
     return '<div class="tt-ac-item" data-idx="' + i + '" data-code="' + c.item_code + '" onmousedown="ttAcSelectEl(this)">';
       + '<span class="tt-ac-code">' + c.item_code + '</span>'
