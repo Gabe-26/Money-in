@@ -4,7 +4,279 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Work Ticket System — Amendola Industries</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
+// ════════════════════════════════════════════════════════════════════════════════
+// ── TRAVELER TRACKER ──────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+ 
+let ttData = [];
+let ttEditId = null;
+ 
+// Supabase helpers for open_travelers table
+async function ttFetchAll() {
+  const res = await fetch(SB_URL + '/rest/v1/open_travelers?select=*&order=id.asc', {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+async function ttInsert(row) {
+  const res = await fetch(SB_URL + '/rest/v1/open_travelers', {
+    method: 'POST',
+    headers: { ...sbHeaders, 'Prefer': 'return=representation' },
+    body: JSON.stringify(row)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+async function ttUpdate(id, patch) {
+  const res = await fetch(SB_URL + '/rest/v1/open_travelers?id=eq.' + id, {
+    method: 'PATCH',
+    headers: { ...sbHeaders, 'Prefer': 'return=minimal' },
+    body: JSON.stringify(patch)
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+async function ttDelete(id) {
+  const res = await fetch(SB_URL + '/rest/v1/open_travelers?id=eq.' + id, {
+    method: 'DELETE', headers: sbHeaders
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+ 
+function deptPill(dept) {
+  const d = (dept||'').toLowerCase();
+  if (d === 'wood')  return '<span class="pill pill-wood">Wood</span>';
+  if (d === 'metal') return '<span class="pill pill-metal">Metal</span>';
+  if (d === 'gate')  return '<span class="pill pill-gate">Gate</span>';
+  return '<span class="pill pill-other">' + dept + '</span>';
+}
+ 
+async function ttRender() {
+  showLoader('Loading travelers...');
+  try {
+    ttData = await ttFetchAll();
+    hideLoader();
+    ttDraw();
+    ttUpdateNavBadge();
+  } catch(e) {
+    hideLoader();
+    // Table might not exist yet
+    const setupSQL = `create table open_travelers (
+  id bigserial primary key,
+  created_at timestamptz default now(),
+  traveler_number text not null,
+  item_code text,
+  description text,
+  department text,
+  qty numeric,
+  created_by text,
+  notes text,
+  status text default 'pending',
+  completed_batch text,
+  completed_date date
+);`;
+    document.getElementById('tt-pending-list').innerHTML =
+      '<div class="tt-empty" style="text-align:left"><b style="color:var(--rd-t)">Database table not found.</b><br><br>' +
+      'Create the <code style="color:var(--gr2)">open_travelers</code> table in Supabase SQL editor:<br>' +
+      '<pre style="background:var(--s2);padding:12px;border-radius:6px;margin-top:10px;font-size:10px;overflow-x:auto;border:1px solid var(--b1);white-space:pre-wrap">' +
+      setupSQL + '</pre></div>';
+    document.getElementById('tt-completed-list').innerHTML = '';
+    toast('Supabase table missing - see setup instructions.', 'err');
+  }
+}
+ 
+function ttDraw() {
+  const pending   = ttData.filter(r => r.status === 'pending');
+  const completed = ttData.filter(r => r.status === 'completed');
+ 
+  const pendingQty = pending.reduce((s, r) => s + (parseFloat(r.qty) || 0), 0);
+  document.getElementById('tt-kv1').textContent = pending.length;
+  document.getElementById('tt-kv2').textContent = completed.length;
+  document.getElementById('tt-kv3').textContent = pendingQty.toLocaleString();
+ 
+  const lastComp = [...completed].sort((a,b) => (b.completed_date||'').localeCompare(a.completed_date||'')).find(r => r.completed_batch);
+  if (lastComp) {
+    document.getElementById('tt-kv4').textContent = lastComp.completed_date || '--';
+    document.getElementById('tt-ks4').textContent = 'Batch ' + lastComp.completed_batch;
+  } else {
+    document.getElementById('tt-kv4').textContent = '--';
+    document.getElementById('tt-ks4').textContent = 'no batch matched yet';
+  }
+ 
+  document.getElementById('tt-pending-count').textContent = pending.length;
+  document.getElementById('tt-completed-count').textContent = completed.length;
+ 
+  const pl = document.getElementById('tt-pending-list');
+  pl.innerHTML = pending.length
+    ? [...pending].reverse().map(r => ttCardHtml(r)).join('')
+    : '<div class="tt-empty">No open travelers. Click <b>+ Add Traveler</b> to log one.</div>';
+ 
+  const cl = document.getElementById('tt-completed-list');
+  cl.innerHTML = completed.length
+    ? [...completed].sort((a,b) => (b.completed_date||'').localeCompare(a.completed_date||'')).map(r => ttCardHtml(r)).join('')
+    : '<div class="tt-empty">No completed travelers yet.</div>';
+}
+ 
+function ttCardHtml(r) {
+  const isComp = r.status === 'completed';
+  const statusPill = isComp
+    ? '<span class="pill pill-completed">&#10003; Completed</span>'
+    : '<span class="pill pill-pending">&#9679; Pending</span>';
+  const deptHtml = r.department ? deptPill(r.department) : '';
+  const createdDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US') : '--';
+  const notesHtml = r.notes ? '<span><b>Notes:</b> ' + r.notes + '</span>' : '';
+  const byHtml = r.created_by ? '<span><b>By:</b> ' + r.created_by + '</span>' : '';
+  const completedHtml = isComp
+    ? '<div class="tt-completed-info"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Closed in Batch <b>' + (r.completed_batch||'--') + '</b> &middot; ' + (r.completed_date||'--') + '</div>'
+    : '';
+  const actions = isComp
+    ? '<button class="btn danger" style="font-size:10px;padding:3px 8px" onclick="ttDeleteConfirm(' + r.id + ')">Remove</button>'
+    : '<button class="btn" style="font-size:10px;padding:3px 8px" onclick="ttEdit(' + r.id + ')">Edit</button>'
+      + '<button class="btn danger" style="font-size:10px;padding:3px 8px" onclick="ttDeleteConfirm(' + r.id + ')">Remove</button>';
+ 
+  return '<div class="tt-card ' + (isComp ? 'completed' : '') + '" id="tt-card-' + r.id + '">'
+    + '<div class="tt-card-left">'
+    + '<div class="tt-card-top"><span class="tt-card-wt">#' + r.traveler_number + '</span>'
+    + '<span class="tt-card-code">' + (r.item_code||'--') + '</span>'
+    + deptHtml + statusPill + '</div>'
+    + (r.description ? '<div class="tt-card-desc">' + r.description + '</div>' : '')
+    + completedHtml
+    + '<div class="tt-card-meta"><span><b>Created:</b> ' + createdDate + '</span>' + byHtml + notesHtml + '</div>'
+    + '</div>'
+    + '<div class="tt-card-right">'
+    + '<div class="tt-card-qty">' + parseFloat(r.qty||0).toLocaleString() + '<span>units</span></div>'
+    + '<div class="tt-card-actions">' + actions + '</div>'
+    + '</div></div>';
+}
+ 
+function ttShowForm(editData) {
+  document.getElementById('tt-form').style.display = 'block';
+  document.getElementById('tt-form-err').textContent = '';
+  if (editData) {
+    document.getElementById('tt-form-title').textContent = 'Edit Traveler';
+    document.getElementById('tt-form-submit').textContent = 'Save Changes';
+    document.getElementById('tt-f-wt').value    = editData.traveler_number || '';
+    document.getElementById('tt-f-code').value  = editData.item_code || '';
+    document.getElementById('tt-f-desc').value  = editData.description || '';
+    document.getElementById('tt-f-dept').value  = editData.department || '';
+    document.getElementById('tt-f-qty').value   = editData.qty || '';
+    document.getElementById('tt-f-by').value    = editData.created_by || '';
+    document.getElementById('tt-f-notes').value = editData.notes || '';
+    document.getElementById('tt-edit-id').value = editData.id;
+    ttEditId = editData.id;
+  } else {
+    document.getElementById('tt-form-title').textContent = 'Add Open Traveler';
+    document.getElementById('tt-form-submit').textContent = 'Add Traveler';
+    ['tt-f-wt','tt-f-code','tt-f-desc','tt-f-qty','tt-f-by','tt-f-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('tt-f-dept').value = '';
+    document.getElementById('tt-edit-id').value = '';
+    ttEditId = null;
+  }
+  document.getElementById('tt-f-wt').focus();
+  document.getElementById('tt-form').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+ 
+function ttHideForm() {
+  document.getElementById('tt-form').style.display = 'none';
+  ttEditId = null;
+}
+ 
+async function ttSubmit() {
+  const wt   = document.getElementById('tt-f-wt').value.trim();
+  const code = document.getElementById('tt-f-code').value.trim().toUpperCase();
+  const dept = document.getElementById('tt-f-dept').value;
+  const qty  = parseFloat(document.getElementById('tt-f-qty').value) || 0;
+  const errEl = document.getElementById('tt-form-err');
+  if (!wt)   { errEl.textContent = 'Traveler # is required.'; return; }
+  if (!code) { errEl.textContent = 'Item Code is required.'; return; }
+  if (!dept) { errEl.textContent = 'Department is required.'; return; }
+  if (!qty)  { errEl.textContent = 'Qty is required.'; return; }
+  errEl.textContent = '';
+  const row = {
+    traveler_number: wt,
+    item_code: code,
+    description: document.getElementById('tt-f-desc').value.trim(),
+    department: dept,
+    qty: qty,
+    created_by: document.getElementById('tt-f-by').value.trim(),
+    notes: document.getElementById('tt-f-notes').value.trim(),
+    status: 'pending'
+  };
+  const btn = document.getElementById('tt-form-submit');
+  btn.disabled = true;
+  try {
+    if (ttEditId) {
+      await ttUpdate(ttEditId, { traveler_number:row.traveler_number, item_code:row.item_code, description:row.description, department:row.department, qty:row.qty, created_by:row.created_by, notes:row.notes });
+      toast('Traveler updated.', 'ok');
+    } else {
+      await ttInsert(row);
+      toast('Traveler added.', 'ok');
+    }
+    ttHideForm();
+    await ttRender();
+  } catch(e) {
+    errEl.textContent = 'Error: ' + e.message;
+  }
+  btn.disabled = false;
+}
+ 
+function ttEdit(id) {
+  const rec = ttData.find(r => r.id === id);
+  if (rec) ttShowForm(rec);
+}
+ 
+async function ttDeleteConfirm(id) {
+  const rec = ttData.find(r => r.id === id);
+  const label = rec ? 'Traveler #' + rec.traveler_number : 'this traveler';
+  if (!confirm('Remove ' + label + '? This cannot be undone.')) return;
+  try {
+    await ttDelete(id);
+    toast('Traveler removed.', 'ok');
+    await ttRender();
+  } catch(e) {
+    toast('Error: ' + e.message, 'err');
+  }
+}
+ 
+async function ttCheckAgainstBatch(entries, batchNum, batchDate) {
+  const batchWTs = new Set(entries.map(e => e.wt));
+  let travelers;
+  try { travelers = await ttFetchAll(); }
+  catch(e) { return; } // table doesn't exist yet
+  const pending = travelers.filter(r => r.status === 'pending');
+  if (!pending.length) return;
+  let completedDate = null;
+  if (batchDate && batchDate !== '--') {
+    const p = batchDate.split('/');
+    if (p.length === 3) completedDate = p[2] + '-' + p[0].padStart(2,'0') + '-' + p[1].padStart(2,'0');
+  }
+  const matched = pending.filter(r => batchWTs.has(r.traveler_number));
+  if (!matched.length) return;
+  for (const t of matched) {
+    await ttUpdate(t.id, { status: 'completed', completed_batch: batchNum, completed_date: completedDate });
+  }
+  ttData = await ttFetchAll();
+  ttUpdateNavBadge();
+  const names = matched.map(t => '#' + t.traveler_number).join(', ');
+  toast('COMPLETED: ' + matched.length + ' traveler' + (matched.length > 1 ? 's' : '') + ' matched: ' + names, 'ok');
+  if (document.getElementById('scr-tracker').style.display !== 'none') {
+    ttDraw();
+    matched.forEach(t => {
+      const card = document.getElementById('tt-card-' + t.id);
+      if (card) { card.classList.add('just-completed'); setTimeout(() => card.classList.remove('just-completed'), 2500); }
+    });
+  }
+}
+ 
+function ttUpdateNavBadge() {
+  const pending = ttData.filter(r => r.status === 'pending').length;
+  const badge = document.getElementById('tt-nav-badge');
+  if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline-flex'; }
+  else { badge.style.display = 'none'; }
+}
+ 
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -235,6 +507,60 @@ tbody td{padding:8px 12px;vertical-align:middle}
 #sidebar-toggle.open svg{stroke:var(--gr2)}
 #sidebar-toggle.open span{color:var(--gr2)}
  
+ 
+/* ── TRAVELER TRACKER STYLES ── */
+.tt-wrap{max-width:1280px;margin:0 auto;padding:2rem 1.5rem}
+.tt-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
+.tt-header h2{font-size:17px;font-weight:600;margin-bottom:3px}
+.tt-header p{font-size:11px;font-family:var(--mono);color:var(--t3)}
+.tt-form-card{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:18px 20px;margin-bottom:1.4rem}
+.tt-form-title{font-size:12px;font-weight:600;font-family:var(--mono);color:var(--t1);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.tt-form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:14px}
+.tt-form-group{display:flex;flex-direction:column;gap:5px}
+.tt-form-group label{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+.tt-input{padding:7px 10px;border:1px solid var(--b2);border-radius:5px;background:var(--s2);color:var(--t1);font-size:12px;font-family:var(--mono);transition:border-color .15s}
+.tt-input:focus{outline:none;border-color:var(--gr)}
+.tt-input::placeholder{color:var(--t3)}
+.tt-select{padding:7px 10px;border:1px solid var(--b2);border-radius:5px;background:var(--s2);color:var(--t1);font-size:12px;font-family:var(--mono);cursor:pointer}
+.tt-select:focus{outline:none;border-color:var(--gr)}
+.tt-form-actions{display:flex;gap:8px;align-items:center}
+.tt-submit{background:var(--gr);color:#fff;border:none;border-radius:5px;padding:7px 18px;font-size:12px;font-family:var(--mono);font-weight:600;cursor:pointer;transition:background .15s}
+.tt-submit:hover{background:#d06020}
+.tt-cancel{background:none;border:1px solid var(--b2);border-radius:5px;padding:7px 14px;font-size:12px;font-family:var(--mono);color:var(--t3);cursor:pointer;transition:all .15s}
+.tt-cancel:hover{background:var(--s2);color:var(--t1)}
+.tt-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.4rem}
+.tt-section{font-size:11px;font-weight:600;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.tt-section-line{flex:1;height:1px;background:var(--b1)}
+.tt-section-count{background:var(--s2);border-radius:4px;padding:1px 7px;font-size:10px;color:var(--t2);border:1px solid var(--b1)}
+.tt-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.6rem}
+.tt-card{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:border-color .15s}
+.tt-card:hover{border-color:var(--b2)}
+.tt-card.completed{opacity:.78}
+.tt-card.completed:hover{border-color:rgba(39,174,96,.25)}
+.tt-card-left{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.tt-card-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tt-card-wt{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--t1)}
+.tt-card-code{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--gr2)}
+.tt-card-desc{font-size:11px;color:var(--t2);margin-top:2px;font-family:var(--mono)}
+.tt-card-meta{display:flex;gap:12px;margin-top:5px;flex-wrap:wrap}
+.tt-card-meta span{font-size:10px;font-family:var(--mono);color:var(--t3)}
+.tt-card-meta b{color:var(--t2)}
+.tt-card-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.tt-card-qty{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--t1)}
+.tt-card-qty span{font-size:10px;font-weight:400;color:var(--t3);margin-left:2px}
+.tt-card-actions{display:flex;gap:5px}
+.tt-completed-info{background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2);border-radius:5px;padding:6px 10px;font-size:10px;font-family:var(--mono);color:var(--am-t);margin-top:4px;display:flex;align-items:center;gap:6px}
+.tt-completed-info svg{width:12px;height:12px;stroke:var(--am-t);fill:none;stroke-width:2;flex-shrink:0}
+.tt-empty{text-align:center;padding:3rem 2rem;color:var(--t3);font-family:var(--mono);font-size:12px;background:var(--s1);border:1px solid var(--b1);border-radius:8px}
+.tt-empty b{color:var(--t2)}
+.pill-pending{background:rgba(240,160,64,0.12);color:#f0a040;border:1px solid rgba(240,160,64,0.25)}
+.pill-completed{background:rgba(39,174,96,0.12);color:#4cd68a;border:1px solid rgba(39,174,96,0.25)}
+.btn.danger{background:var(--rd-bg);color:var(--rd-t);border-color:rgba(220,60,60,.25)}
+.btn.danger:hover{background:rgba(220,60,60,.2)}
+.tt-pending-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:9px;background:rgba(240,160,64,0.85);color:#fff;font-size:10px;font-family:var(--mono);font-weight:700;padding:0 5px;margin-left:5px;vertical-align:middle}
+@keyframes tt-flash{0%{background:rgba(39,174,96,.2);border-color:rgba(39,174,96,.5)}100%{background:var(--s1);border-color:var(--b1)}}
+.tt-card.just-completed{animation:tt-flash 2s ease-out}
+ 
 </style>
 </head>
 <body>
@@ -247,6 +573,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
   <button class="ntab on" id="tab-import"  onclick="goTo('import')">Import PDF</button>
   <button class="ntab"    id="tab-records" onclick="goTo('records')">Records</button>
   <button class="ntab"    id="tab-db"      onclick="goTo('db')">Set Month Overview</button>
+  <button class="ntab"    id="tab-tracker"  onclick="goTo('tracker')">Traveler Tracker<span class="tt-pending-badge" id="tt-nav-badge" style="display:none">0</span></button>
   <span class="nbadge" id="nbadge">—</span>
 </nav>
  
@@ -561,14 +888,13 @@ function hideLoader() {
  
 // ── NAV ───────────────────────────────────────────────────────────────────────
 function goTo(name) {
-  document.getElementById('scr-import').style.display  = name === 'import'  ? 'block' : 'none';
-  document.getElementById('scr-records').style.display = name === 'records' ? 'block' : 'none';
-  document.getElementById('scr-db').style.display      = name === 'db'      ? 'block' : 'none';
-  document.getElementById('tab-import').classList.toggle('on',  name === 'import');
-  document.getElementById('tab-records').classList.toggle('on', name === 'records');
-  document.getElementById('tab-db').classList.toggle('on',      name === 'db');
+  ['import','records','db','tracker'].forEach(n => {
+    document.getElementById('scr-'+n).style.display = n === name ? 'block' : 'none';
+    document.getElementById('tab-'+n).classList.toggle('on', n === name);
+  });
   if (name === 'db')      renderDB();
   if (name === 'records') renderRecords();
+  if (name === 'tracker') ttRender();
 }
  
 // ── DROP ZONE ─────────────────────────────────────────────────────────────────
@@ -711,6 +1037,9 @@ async function runPDF(file) {
   document.getElementById('ppg').style.display = 'flex';
   document.getElementById('savebtn').style.display = 'inline-block';
   doFilter();
+ 
+  // ── AUTO-CHECK OPEN TRAVELERS ─────────────────────────────────────────────
+  await ttCheckAgainstBatch(entries, meta.batch, jd);
 }
  
 // ── FORMATTING ────────────────────────────────────────────────────────────────
@@ -1352,6 +1681,92 @@ function updateKPIs(e) {
  
 // ── INIT ──────────────────────────────────────────────────────────────────────
 updateBadge();
+// Load traveler badge on startup
+ttFetchAll().then(data => { ttData = data; ttUpdateNavBadge(); }).catch(() => {});
 </script>
+ 
+<!-- TRAVELER TRACKER SCREEN -->
+<div id="scr-tracker" style="display:none">
+<div class="tt-wrap">
+  <div class="tt-header">
+    <div>
+      <h2>Traveler Tracker</h2>
+      <p>Log open travelers — auto-marked complete when found in an imported batch</p>
+    </div>
+    <button class="btn save" onclick="ttShowForm()">+ Add Traveler</button>
+  </div>
+ 
+  <div class="tt-form-card" id="tt-form" style="display:none">
+    <div class="tt-form-title" id="tt-form-title">Add Open Traveler</div>
+    <div class="tt-form-grid">
+      <div class="tt-form-group">
+        <label>Traveler # <span style="color:var(--rd-t)">*</span></label>
+        <input class="tt-input" id="tt-f-wt" placeholder="e.g. 456908" type="text"/>
+      </div>
+      <div class="tt-form-group">
+        <label>Item Code <span style="color:var(--rd-t)">*</span></label>
+        <input class="tt-input" id="tt-f-code" placeholder="e.g. WOK6" type="text"/>
+      </div>
+      <div class="tt-form-group">
+        <label>Description</label>
+        <input class="tt-input" id="tt-f-desc" placeholder="e.g. Oak 6ft Wood Section" type="text"/>
+      </div>
+      <div class="tt-form-group">
+        <label>Department <span style="color:var(--rd-t)">*</span></label>
+        <select class="tt-input tt-select" id="tt-f-dept">
+          <option value="">Select...</option>
+          <option value="Wood">Wood</option>
+          <option value="Metal">Metal</option>
+          <option value="Gate">Gate</option>
+        </select>
+      </div>
+      <div class="tt-form-group">
+        <label>Qty <span style="color:var(--rd-t)">*</span></label>
+        <input class="tt-input" id="tt-f-qty" placeholder="e.g. 60" type="number" min="0" step="any"/>
+      </div>
+      <div class="tt-form-group">
+        <label>Created By</label>
+        <input class="tt-input" id="tt-f-by" placeholder="Your name" type="text"/>
+      </div>
+    </div>
+    <div class="tt-form-group" style="margin-bottom:14px">
+      <label>Notes</label>
+      <input class="tt-input" id="tt-f-notes" placeholder="Optional notes..." type="text" style="width:100%"/>
+    </div>
+    <div class="tt-form-actions">
+      <button class="tt-submit" onclick="ttSubmit()" id="tt-form-submit">Add Traveler</button>
+      <button class="tt-cancel" onclick="ttHideForm()">Cancel</button>
+      <span id="tt-form-err" style="font-size:11px;font-family:var(--mono);color:var(--rd-t);margin-left:8px"></span>
+    </div>
+    <input type="hidden" id="tt-edit-id" value=""/>
+  </div>
+ 
+  <div class="tt-kpis">
+    <div class="kpi"><div class="kpi-l">Open Travelers</div><div class="kpi-v" id="tt-kv1">0</div><div class="kpi-s">pending completion</div></div>
+    <div class="kpi"><div class="kpi-l">Completed</div><div class="kpi-v w" id="tt-kv2">0</div><div class="kpi-s">auto-matched from batches</div></div>
+    <div class="kpi"><div class="kpi-l">Pending Qty</div><div class="kpi-v g" id="tt-kv3">0</div><div class="kpi-s">units still in production</div></div>
+    <div class="kpi"><div class="kpi-l">Last Matched</div><div class="kpi-v" id="tt-kv4" style="font-size:14px">--</div><div class="kpi-s" id="tt-ks4">no batch matched yet</div></div>
+  </div>
+ 
+  <div class="tt-section">
+    <span style="color:#f0a040">&#9679;</span> Pending
+    <span class="tt-section-count" id="tt-pending-count">0</span>
+    <div class="tt-section-line"></div>
+  </div>
+  <div class="tt-list" id="tt-pending-list">
+    <div class="tt-empty">No open travelers yet. Click <b>+ Add Traveler</b> to log one.</div>
+  </div>
+ 
+  <div class="tt-section">
+    <span style="color:#4cd68a">&#9679;</span> Completed
+    <span class="tt-section-count" id="tt-completed-count">0</span>
+    <div class="tt-section-line"></div>
+  </div>
+  <div class="tt-list" id="tt-completed-list">
+    <div class="tt-empty">No completed travelers yet.</div>
+  </div>
+</div>
+</div>
+ 
 </body>
 </html>
