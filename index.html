@@ -1564,14 +1564,17 @@ async function scDeleteCode(id) {
 }
  
 async function scLoadCodes() {
-  try { scCodes = await scFetchAll(); }
-  catch(e) { scCodes = []; } // table may not exist yet
+  try { 
+    var fresh = await scFetchAll();
+    scCodes = fresh;
+  }
+  catch(e) { scCodes = []; }
 }
  
 function scOpenModal() {
   document.getElementById('sc-modal-bg').classList.add('open');
   document.getElementById('sc-f-code').focus();
-  scRenderList();
+  scLoadCodes().then(function(){ scRenderList(); }).catch(function(){ scRenderList(); });
 }
 function scCloseModal() {
   document.getElementById('sc-modal-bg').classList.remove('open');
@@ -1650,17 +1653,24 @@ function ttAcInput() {
   var val = document.getElementById('tt-f-code').value.trim().toUpperCase();
   var drop = document.getElementById('tt-ac-drop');
   ttAcIdx = -1;
+  // If no val and no codes, hide
+  if (!val) { drop.classList.remove('open'); drop.innerHTML = ''; return; }
+  // If codes not loaded yet, try loading them first
   if (!scCodes.length) {
-    drop.innerHTML = '<div class="tt-ac-empty">No stock codes yet. Click Stock Codes to add them.</div>';
+    scLoadCodes().then(function(){
+      ttAcInput(); // retry after load
+    });
+    drop.innerHTML = '<div class="tt-ac-empty">Loading codes...</div>';
     drop.classList.add('open');
     return;
   }
-  if (!val) { drop.classList.remove('open'); drop.innerHTML = ''; return; }
   var matches = scCodes.filter(function(c){
-    return c.item_code.toUpperCase().startsWith(val) || c.item_code.toUpperCase().includes(val) || (c.description||'').toUpperCase().includes(val);
+    var code = (c.item_code || '').toUpperCase();
+    var desc = (c.description || '').toUpperCase();
+    return code.startsWith(val) || code.includes(val) || desc.includes(val);
   }).slice(0, 10);
   if (!matches.length) { 
-    drop.innerHTML = '<div class="tt-ac-empty">No matches. Add codes via Stock Codes button.</div>';
+    drop.innerHTML = '<div class="tt-ac-empty">No match for "' + val + '" — add it via Stock Codes.</div>';
     drop.classList.add('open');
     return;
   }
@@ -1849,6 +1859,8 @@ function ttCardHtml(r) {
  
 function ttShowForm(editData) {
   document.getElementById('tt-form').style.display = 'block';
+  // Always refresh stock codes when form opens so autocomplete is current
+  scLoadCodes().catch(function(){});
   document.getElementById('tt-form-err').textContent = '';
   if (editData) {
     document.getElementById('tt-form-title').textContent   = 'Edit Traveler';
