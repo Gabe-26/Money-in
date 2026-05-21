@@ -919,6 +919,11 @@ async function runOCR(pdf, numPages, meta) {
     await page.render({ canvasContext: ctx, viewport: vp }).promise;
  
     sts('OCR: analyzing page ' + p + ' of ' + numPages + '...', true);
+    // Set PSM 6 (uniform block of text) + preserve spacing for column layout
+    await worker.setParameters({
+      tessedit_pageseg_mode: '6',
+      preserve_interword_spaces: '1'
+    });
     var result = await worker.recognize(canvas);
     var text = result.data.text;
  
