@@ -427,6 +427,21 @@ tbody td{padding:8px 12px;vertical-align:middle}
     </div>
     <button class="btn export" onclick="dlCSVAll()">Export CSV</button>
   </div>
+  <!-- TAG LIBRARY PANEL -->
+  <div id="tag-library-panel" style="background:var(--s1);border:1px solid var(--b1);border-radius:8px;margin-bottom:12px;overflow:hidden">
+    <button id="tag-library-toggle" onclick="tlToggle()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:none;border:none;color:var(--t1);cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;text-align:left">
+      <span>🏷 Tag Library <span id="tl-count" style="color:var(--t3);font-weight:400"></span></span>
+      <span id="tl-arrow" style="color:var(--t3);font-size:10px">▼</span>
+    </button>
+    <div id="tag-library-body" style="display:none;padding:12px 14px 14px;border-top:1px solid var(--b1)">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input id="tl-new-input" style="flex:1;padding:6px 10px;border:1px solid var(--b2);border-radius:5px;background:var(--s2);color:var(--t1);font-size:11px;font-family:var(--mono)" placeholder="New tag name (e.g. Taper, Flush, Custom Gate…)" onkeydown="if(event.key==='Enter')tlAdd()"/>
+        <button onclick="tlAdd()" style="padding:6px 14px;border-radius:5px;border:1px solid var(--gr);background:var(--gr-bg);color:var(--gr2);font-size:11px;font-family:var(--mono);cursor:pointer;font-weight:600;white-space:nowrap">+ Add Tag</button>
+      </div>
+      <div id="tl-tags-list" style="display:flex;flex-wrap:wrap;gap:6px"><span style="font-size:11px;font-family:var(--mono);color:var(--t3)">No tags yet. Add one above.</span></div>
+    </div>
+  </div>
+ 
   <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;flex-wrap:wrap">
     <input id="recsearch" style="flex:1;min-width:220px;padding:7px 12px;border:1px solid var(--b2);border-radius:6px;background:var(--s1);color:var(--t1);font-size:12px;font-family:var(--mono)" placeholder="search date, s/o, traveler, code, description…" oninput="recFilter()"/>
     <select id="rec-batch-sel" style="padding:6px 10px;border:1px solid var(--b2);border-radius:6px;background:var(--s1);color:var(--t1);font-size:11px;font-family:var(--mono)" onchange="recFilter()">
@@ -1599,8 +1614,11 @@ function tlSave() {
   localStorage.setItem('aii_tag_library', JSON.stringify(tlTags));
 }
 function tlToggle() {
-  const btn = document.getElementById('tag-library-toggle');
-  btn.classList.toggle('open');
+  const body = document.getElementById('tag-library-body');
+  const arrow = document.getElementById('tl-arrow');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  arrow.textContent = open ? '▼' : '▲';
 }
 function tlRender() {
   const list = document.getElementById('tl-tags-list');
