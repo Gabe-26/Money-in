@@ -926,6 +926,7 @@ async function runOCR(pdf, numPages, meta) {
     });
     var result = await worker.recognize(canvas);
     var text = result.data.text;
+    console.log('[RAW OCR PAGE ' + p + ']:\n' + text.slice(0, 3000));
  
     // Extract batch/date from first page header if not already found
     if (batchNum === '—' || !batchNum) {
