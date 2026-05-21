@@ -1624,7 +1624,8 @@ function recFilter() {
     if (r.dept === 'other' && !recFunk)  return false;
     if (batchFilter && r.batch !== batchFilter) return false;
     if (q) return r.so.toLowerCase().includes(q) || r.code.toLowerCase().includes(q) ||
-      r.desc.toLowerCase().includes(q) || r.wt.toLowerCase().includes(q) || r.date.includes(q) || r.batch.includes(q);
+      r.desc.toLowerCase().includes(q) || r.wt.toLowerCase().includes(q) || r.date.includes(q) || r.batch.includes(q) ||
+      (tagCache[r.wt]||'').toLowerCase().includes(q);
     return true;
   });
   if (recSc) recFilt.sort((a,b) => {
@@ -1652,6 +1653,12 @@ function recDraw() {
     const marginPct = r.ext > 0 ? (margin / r.ext * 100) : 0;
     const marginClass = margin > 0 ? 'margin-pos' : margin < 0 ? 'margin-neg' : 'margin-zero';
     const spVal = sp > 0 ? sp.toFixed(2) : '';
+    const curTag = tagCache[r.wt] || '';
+    const hasDesc = r.desc && r.desc.trim().length > 0;
+    const tagOpts = tlTags.map(t => `<option value="${t}"${curTag===t?' selected':''}>${t}</option>`).join('');
+    const descCell = hasDesc
+      ? `<td class="cdesc" title="${r.desc}">${r.desc}</td>`
+      : `<td style="padding:6px 12px"><select class="tag-select${curTag?' tagged':''}" data-wt="${r.wt}" onchange="tagSave(this)"><option value="">— tag —</option>${tagOpts}</select></td>`;
     return `<tr style="border-bottom:1px solid var(--b1)">
     <td class="cdate">${r.date}</td>
     <td style="font-family:var(--mono);font-size:11px;color:var(--t3)">${r.batch}</td>
@@ -1659,7 +1666,7 @@ function recDraw() {
     <td><span class="pill pill-wt">${r.wt}</span></td>
     <td>${m2p(r.dept)}</td>
     <td><span class="ccode">${r.code}</span></td>
-    <td class="cdesc" title="${r.desc}">${r.desc||'—'}</td>
+    ${descCell}
     <td class="cnum">${r.qty.toFixed(2)}</td>
     <td class="cnum">$${fmt3(r.unit)}</td>
     <td class="cext">$${fmt2(r.ext)}</td>
@@ -2360,6 +2367,7 @@ function ttUpdateNavBadge() {
  
 // Load badge on startup
 scLoadCodes().catch(function(){});
+tlRender();
 ttFetchAll().then(function(data){ ttData=data; ttUpdateNavBadge(); }).catch(function(){});
 </script>
  
