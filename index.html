@@ -964,22 +964,23 @@ function parseOCRText(text, batch, date) {
  
       var so = null, isInv = false, desc = '';
  
-      // Look at next 1-3 lines for S/O / Inventory / description
-      for (var j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+      // Scan next lines for S/O, Inventory, and description
+      for (var j = i + 1; j < Math.min(i + 5, lines.length); j++) {
         var nl = lines[j];
         if (!nl) continue;
- 
-        var soM = nl.match(/^S\/O\s+(0\d{6,7})/);
+        // Stop if we hit the next WT entry
+        if (wtRe.test(nl)) break;
+        // S/O line: "S/O 0654104 1.00" — tolerant match
+        var soM = nl.match(/^S[\/.\\]?\s*[O0]\s+(0\d{5,8})/i);
         if (soM) { so = soM[1]; continue; }
- 
+        // Inventory
         if (/^Inventory\b/i.test(nl)) { isInv = true; continue; }
- 
-        // Skip EA-only lines, numeric-only lines, header lines
-        if (isEALine(nl) || isSkip(nl) || /^[\d\s.,]+$/.test(nl)) continue;
- 
-        // If it has real text and isn't another WT line → it's a description
-        if (/[A-Za-z]{2,}/.test(nl) && !nl.match(wtRe)) {
-          // Strip trailing "N.NN EA" from desc
+        // Skip pure number lines, EA lines, header lines
+        if (/^[\d\s.,]+$/.test(nl)) continue;
+        if (isEALine(nl)) continue;
+        if (isSkip(nl)) continue;
+        // Description: has letters, not a WT line
+        if (/[A-Za-z]{2,}/.test(nl)) {
           desc = nl.replace(/^[\*\s]+/,'').replace(/\s+\d+\.?\d*\s+EA\s*$/,'').trim();
         }
       }
