@@ -766,8 +766,15 @@ async function runPDF(file) {
   sts('Parsing work tickets…', true);
  
   const wti = [];
-  for (let i = 0; i < lines.length; i++)
-    if (lines[i].toks.some(t => /^0{5,}\d{5,}$/.test(t))) wti.push(i);
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].toks.some(t => /^0{5,}\d{5,}$/.test(t))) {
+      wti.push(i);
+      const wtok = lines[i].toks.find(t => /^0{5,}\d{5,}$/.test(t));
+      const code = lines[i].toks.find(t => t !== wtok && /^[A-Z][A-Z0-9\-]+$/.test(t) && t.length >= 3 && !/^(Yes|EA|W\/T|S\/O|AII|WO)$/.test(t));
+      console.log('[WT found]', wtok, '| code:', code, '| raw:', JSON.stringify(lines[i].raw.slice(0,60)));
+    }
+  }
+  console.log('[WT total]', wti.length, 'work ticket lines found');
  
   // ── SCANNED PDF DETECTION ─────────────────────────────────────────────────
   if (wti.length === 0) {
