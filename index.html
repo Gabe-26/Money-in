@@ -927,12 +927,12 @@ function parseOCRText(text, batch, date) {
  
   // WT line: "000000426374 OKG-CUS 000 Yes 1.00 124.460 124.46"
   // Relaxed: item code can have digits, letters, hyphens, dots, underscores
-  var wtRe = /^(0{3,}\d{5,})\s+([A-Z0-9][A-Z0-9\-\._]+)\s+\d{3}\s+Yes\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s*$/;
+  var wtRe = /^(0{3,}\d{5,})\s+([A-Za-z0-9][A-Za-z0-9\-\._]+)\s+\d{3}\s+Yes\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s*$/;
  
   // More relaxed fallback: sometimes OCR drops spaces or slightly mangles
-  var wtRelaxed = /^(0{3,}\d{5,})\s+([A-Z0-9][A-Z0-9\-\._]+)\s+\d{3}\s+Yes\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)/;
+  var wtRelaxed = /^(0{3,}\d{5,})\s+([A-Za-z0-9][A-Za-z0-9\-\._]+)\s+\d{3}\s+Yes\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)/;
  
-  var skipPrefixes = ['Run Date','P/M Date','Work Ticket','Journal Posting',
+  var skipPrefixes = ['Run Date','P/M Date','PIM Date','Work Ticket','Journal Posting',
     'Close/Completion','Batch Number','Amendola','Trans Number',
     'W/T Number','Item Description','Total Cost','Make For'];
  
@@ -944,10 +944,10 @@ function parseOCRText(text, batch, date) {
   }
   function isSO(line) {
     // "S/O 0654266 1.00" or "S/O 0654266"
-    return /^S[\/\\.]?\s*[O0]\s+0\d{5,}/i.test(line);
+        return /^S[\/\\.IO]?\s*[O0]\s+0\d{5,}/i.test(line) || /^SIO\s+0\d{5,}/i.test(line);
   }
   function extractSO(line) {
-    var m = line.match(/0\d{5,8}/);
+    var m = line.match(/\b0\d{5,8}\b/);
     return m ? m[0] : null;
   }
   function isInventory(line) {
@@ -2200,3 +2200,4 @@ ttFetchAll().then(function(data){ ttData=data; ttUpdateNavBadge(); }).catch(func
 </script>
  
 </body>
+</html>
