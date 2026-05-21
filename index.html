@@ -926,6 +926,34 @@ async function runOCR(pdf, numPages, meta) {
   return allEntries;
 }
  
+ 
+function normalizeOCRCode(code) {
+  // Fix known OCR misreads of item codes
+  var fixes = {
+    'CSS':   'CS8',   // 8 misread as S
+    'CS5S':  'CS8',
+    'CS85':  'CS8',
+    'CS58':  'CS8',
+    'CCS8':  'CS8',
+    'C58':   'CS8',
+    'CSSS':  'CS8',
+    'SSS65': 'SSG65',
+    'SS665': 'SSG65',
+    'SSGS5': 'SSG65',
+    'CLGFS': 'CLGF53-BK',
+  };
+  // Exact match fix
+  if (fixes[code]) return fixes[code];
+  // Pattern: CS followed by a letter that looks like 8 (S, 5, B)
+  // e.g. CSS4 -> CS4, CSS6 -> CS6, CSS8 -> CS8
+  var csMatch = code.match(/^C[S5]([S5B8])(\d*)(-.*)?$/);
+  if (csMatch && code.startsWith('C')) {
+    var digit = csMatch[1].replace('S','8').replace('B','8');
+    return 'CS' + digit + (csMatch[2]||'') + (csMatch[3]||'');
+  }
+  return code;
+}
+ 
 function parseOCRText(text, batch, date) {
   var entries = [];
   var lines = text.split('\n').map(function(l){ return l.trim(); });
@@ -1015,14 +1043,15 @@ function parseOCRText(text, batch, date) {
         }
       }
  
+      var normCode = normalizeOCRCode(code);
       entries.push({
         date: date, batch: batch,
         wt: wt,
         so: so || 'Inventory',
         isInv: isInv || !so,
-        code: code, desc: desc,
+        code: normCode, desc: desc,
         qty: qty, unit: unit, ext: ext,
-        material: mat(code)
+        material: mat(normCode)
       });
     }
     i++;
