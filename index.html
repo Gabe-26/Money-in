@@ -1553,7 +1553,7 @@ async function spFetchAll() {
   return map;
 }
 async function spUpsert(travelerNum, salePrice) {
-  const res = await fetch(SB_URL + '/rest/v1/sale_prices', {
+  const res = await fetch(SB_URL + '/rest/v1/sale_prices?on_conflict=traveler_number', {
     method: 'POST',
     headers: { ...sbHeaders, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
     body: JSON.stringify({ traveler_number: travelerNum, sale_price: salePrice })
