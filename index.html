@@ -982,10 +982,10 @@ function parseOCRText(text, batch, date) {
  
   // WT line: "000000426374 OKG-CUS 000 Yes 1.00 124.460 124.46"
   // Relaxed: item code can have digits, letters, hyphens, dots, underscores
-  var wtRe = /^(0{3,}\d{5,})\s+([A-Za-z0-9][A-Za-z0-9\-\.\+_]+)\s+\S{3}\s+\S+\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s*$/;
+  var wtRe = /^(0*\d{6,})\s+([A-Za-z0-9][A-Za-z0-9\-\.\+_]+)\s+\S{2,4}\s+\S+\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s*$/;
  
   // More relaxed fallback: sometimes OCR drops spaces or slightly mangles
-  var wtRelaxed = /^(0{3,}\d{5,})\s+([A-Za-z0-9][A-Za-z0-9\-\.\+_]+)\s+\S{2,4}\s+\S+\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)/;
+  var wtRelaxed = /^(0*\d{6,})\s+([A-Za-z0-9][A-Za-z0-9\-\.\+_]+)\s+\S{2,4}\s+\S+\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)/;
  
   var skipPrefixes = ['Run Date','P/M Date','PIM Date','Work Ticket','Journal Posting',
     'Close/Completion','Batch Number','Amendola','Trans Number',
