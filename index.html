@@ -853,97 +853,146 @@ function m2p(m) {
  
 // ── OCR FALLBACK FOR SCANNED PDFs (Tesseract.js) ────────────────────────────
 async function runOCR(pdf, numPages, meta) {
-  // Load Tesseract.js if not already loaded
+  // Load Tesseract.js from CDN if not already present
   if (typeof Tesseract === 'undefined') {
     await new Promise(function(resolve, reject) {
-      const s = document.createElement('script');
+      var s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
       s.onload = resolve;
-      s.onerror = function(){ reject(new Error('Failed to load Tesseract.js')); };
+      s.onerror = function(){ reject(new Error('Could not load Tesseract.js')); };
       document.head.appendChild(s);
     });
   }
  
-  const worker = await Tesseract.createWorker('eng', 1, {
+  var allEntries = [];
+  var batchNum = meta.batch;
+  var jDate    = meta.date;
+ 
+  var worker = await Tesseract.createWorker('eng', 1, {
     logger: function(m) {
       if (m.status === 'recognizing text') {
-        sts('OCR: reading page ' + currentOCRPage + ' of ' + numPages + ' (' + Math.round((m.progress||0)*100) + '%)...', true);
+        sts('OCR: reading page ' + currentPage + ' of ' + numPages + ' (' + Math.round((m.progress||0)*100) + '%)...', true);
       }
     }
   });
+  var currentPage = 1;
  
-  const allEntries = [];
-  let currentOCRPage = 1;
- 
-  for (let p = 1; p <= numPages; p++) {
-    currentOCRPage = p;
+  for (var p = 1; p <= numPages; p++) {
+    currentPage = p;
     sts('OCR: rendering page ' + p + ' of ' + numPages + '...', true);
  
-    // Render PDF page to canvas at high DPI
-    const page = await pdf.getPage(p);
-    const scale = 2.5;
-    const vp = page.getViewport({ scale });
-    const canvas = document.createElement('canvas');
+    // Render page to high-res canvas
+    var page = await pdf.getPage(p);
+    var scale = 2.5;
+    var vp = page.getViewport({ scale: scale });
+    var canvas = document.createElement('canvas');
     canvas.width = vp.width;
     canvas.height = vp.height;
-    const ctx = canvas.getContext('2d');
+    var ctx = canvas.getContext('2d');
     await page.render({ canvasContext: ctx, viewport: vp }).promise;
  
-    // Run Tesseract OCR on the canvas
-    const { data: { text } } = await worker.recognize(canvas);
+    sts('OCR: analyzing page ' + p + ' of ' + numPages + '...', true);
+    var result = await worker.recognize(canvas);
+    var text = result.data.text;
  
-    // Parse the OCR text using the same logic patterns as the normal parser
-    const pageEntries = parseOCRText(text, meta);
-    allEntries.push(...pageEntries);
+    // Extract batch/date from first page header if not already found
+    if (batchNum === '—' || !batchNum) {
+      var bm = text.match(/Batch\s+Number:?\s*(\d+)/i);
+      if (bm) batchNum = bm[1];
+    }
+    if (jDate === '—' || !jDate) {
+      var dm = text.match(/Journal\s+Posting\s+Date:\s*(\d{1,2}\/\d{1,2}\/\d{4})/i);
+      if (dm) jDate = dm[1];
+    }
+ 
+    // Parse entries from this page
+    var pageEntries = parseOCRText(text, batchNum, jDate);
+    allEntries = allEntries.concat(pageEntries);
   }
  
   await worker.terminate();
+ 
+  // Update meta with what we found
+  meta.batch = batchNum;
+  meta.date  = jDate;
+  document.getElementById('mb').textContent = batchNum;
+  document.getElementById('md').textContent = jDate;
+ 
   return allEntries;
 }
  
-function parseOCRText(text, meta) {
-  const entries = [];
-  const lines = text.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+function parseOCRText(text, batch, date) {
+  var entries = [];
+  var lines = text.split('\n').map(function(l){ return l.trim(); });
  
-  // Pattern: line starting with a long number (W/T number with leading zeros)
-  // e.g. "000000426374 OKG-CUS 000 Yes 1.00 124.460 124.46"
-  const wtLineRe = /^(0{3,}\d{5,})\s+([A-Z][A-Z0-9\-]+)\s+\d{3}\s+Yes\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)/;
-  // Also handle lines where the item code and WT are on separate columns
-  const wtRe = /^(0{3,}\d{5,})/;
+  // WT line pattern: "000000426374 OKG-CUS 000 Yes 1.00 124.460 124.46"
+  // Groups: (wt_number) (item_code) (whse=000) Yes (qty) (unit) (ext)
+  var wtRe = /^(0{3,}\d{5,})\s+([A-Z0-9][A-Z0-9\-\.]+)\s+\d{3}\s+Yes\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)$/;
  
-  let i = 0;
+  var skipPrefixes = ['Run Date','P/M Date','Work Ticket','Journal Posting',
+    'Close/Completion','Batch Number','Amendola','Trans Number',
+    'W/T Number','Item Description','Total Cost'];
+ 
+  function isSkip(line) {
+    return skipPrefixes.some(function(p){ return line.indexOf(p) === 0; });
+  }
+  function isEALine(line) {
+    return /^\d+\.?\d*\s+EA\s*$/.test(line) || /^\d+\.?\d*\s*EA\s*$/.test(line);
+  }
+  function fixNum(s) {
+    // "131,820" where comma is OCR error for period — if >4 digits before comma treat as decimal
+    var cleaned = s.replace(/,/g,'');
+    var f = parseFloat(cleaned);
+    // If original had comma and value looks like it should be small (unit cost)
+    // e.g. "131,820" → 131.820
+    if (s.indexOf(',') !== -1 && f > 10000 && s.split(',')[1] && s.split(',')[1].length <= 3) {
+      return parseFloat(s.replace(',', '.'));
+    }
+    return f;
+  }
+ 
+  var i = 0;
   while (i < lines.length) {
-    const line = lines[i];
-    const m = line.match(wtLineRe);
+    var line = lines[i];
+    var m = line.match(wtRe);
     if (m) {
-      const wt = m[1].replace(/^0+/, '');
-      const code = m[2].toUpperCase();
-      const qty = parseFloat(m[3].replace(/,/g,'')) || 0;
-      const unit = parseFloat(m[4].replace(/,/g,'')) || 0;
-      const ext = parseFloat(m[5].replace(/,/g,'')) || 0;
+      var wt   = m[1].replace(/^0+/,'');
+      var code = m[2].toUpperCase();
+      var qty  = fixNum(m[3]);
+      var unit = fixNum(m[4]);
+      var ext  = fixNum(m[5]);
  
-      // Look at next 3 lines for S/O or Inventory + description
-      let so = null, isInv = false, desc = '';
-      for (let j = i+1; j < Math.min(i+4, lines.length); j++) {
-        const nl = lines[j];
-        const soM = nl.match(/S\/O\s+(0\d{6,7})/);
-        if (soM) { so = soM[1]; break; }
-        if (/\bInventory\b/i.test(nl)) { isInv = true; break; }
-        // Description line: has letters but not header keywords
-        if (/[A-Z]{2,}/.test(nl) && !/^(Run|P\/M|Page|Trans|Journal|Batch|Work|Amendola|W\/T|Make|Item|Whse|Close|Qty|Unit|Ext)/i.test(nl)) {
-          if (!desc) desc = nl.replace(/^\*/, '').trim();
+      var so = null, isInv = false, desc = '';
+ 
+      // Look at next 1-3 lines for S/O / Inventory / description
+      for (var j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+        var nl = lines[j];
+        if (!nl) continue;
+ 
+        var soM = nl.match(/^S\/O\s+(0\d{6,7})/);
+        if (soM) { so = soM[1]; continue; }
+ 
+        if (/^Inventory\b/i.test(nl)) { isInv = true; continue; }
+ 
+        // Skip EA-only lines, numeric-only lines, header lines
+        if (isEALine(nl) || isSkip(nl) || /^[\d\s.,]+$/.test(nl)) continue;
+ 
+        // If it has real text and isn't another WT line → it's a description
+        if (/[A-Za-z]{2,}/.test(nl) && !nl.match(wtRe)) {
+          // Strip trailing "N.NN EA" from desc
+          desc = nl.replace(/^[\*\s]+/,'').replace(/\s+\d+\.?\d*\s+EA\s*$/,'').trim();
         }
       }
  
-      if (so || isInv) {
-        entries.push({
-          date: meta.date, batch: meta.batch,
-          wt: wt, so: so || 'Inventory', isInv: isInv || !so,
-          code: code, desc: desc,
-          qty: qty, unit: unit, ext: ext,
-          material: mat(code)
-        });
-      }
+      entries.push({
+        date: date, batch: batch,
+        wt: wt,
+        so: so || 'Inventory',
+        isInv: isInv || !so,
+        code: code, desc: desc,
+        qty: qty, unit: unit, ext: ext,
+        material: mat(code)
+      });
     }
     i++;
   }
