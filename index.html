@@ -768,7 +768,7 @@ async function runPDF(file) {
   const wti = [];
   for (let i = 0; i < lines.length; i++)
     if (lines[i].toks.some(t => /^0{5,}\d{5,}$/.test(t))) wti.push(i);
-  console.log('[WT total]', wti.length, 'work ticket lines found (0 = scanned PDF, using OCR)');
+ 
  
   // ── SCANNED PDF DETECTION ─────────────────────────────────────────────────
   if (wti.length === 0) {
@@ -982,10 +982,10 @@ function parseOCRText(text, batch, date) {
  
   // WT line: "000000426374 OKG-CUS 000 Yes 1.00 124.460 124.46"
   // Relaxed: item code can have digits, letters, hyphens, dots, underscores
-  var wtRe = /^(0{3,}\d{5,})\s+([A-Za-z0-9][A-Za-z0-9\-\._]+)\s+[A-Z0-9]{3}\s+[Yy][a-z3]{0,2}[s5]?\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s*$/i;
+  var wtRe = /^(0{3,}\d{5,})\s+([A-Za-z0-9][A-Za-z0-9\-\.\+_]+)\s+\S{3}\s+\S+\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s*$/;
  
   // More relaxed fallback: sometimes OCR drops spaces or slightly mangles
-  var wtRelaxed = /^(0{3,}\d{5,})\s+([A-Za-z0-9][A-Za-z0-9\-\._]+)\s+[A-Z0-9]{3}\s+[Yy][a-z3]{0,2}[s5]?\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)/i;
+  var wtRelaxed = /^(0{3,}\d{5,})\s+([A-Za-z0-9][A-Za-z0-9\-\.\+_]+)\s+\S{2,4}\s+\S+\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)/;
  
   var skipPrefixes = ['Run Date','P/M Date','PIM Date','Work Ticket','Journal Posting',
     'Close/Completion','Batch Number','Amendola','Trans Number',
@@ -1038,7 +1038,8 @@ function parseOCRText(text, batch, date) {
   while (i < lines.length) {
     var line = lines[i];
     var m = line.match(wtRe) || line.match(wtRelaxed);
-    if (m) {
+    // Validate: code must have at least one letter and not be a pure number
+    if (m && /[A-Za-z]/.test(m[2]) && m[2].length >= 2) {
       var wt   = m[1].replace(/^0+/,'');
       var code = m[2].toUpperCase();
       var qty  = fixNum(m[3]);
