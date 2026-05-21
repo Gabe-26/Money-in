@@ -57,7 +57,7 @@ nav{background:#0a0a09;padding:0 2rem;display:flex;align-items:center;height:48p
 .mc b{color:var(--t1);font-weight:600}
  
 /* SUMMARY */
-#psummary{display:none;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:1.2rem}
+#psummary{display:none;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:1.2rem}
 .sc{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:12px 14px}
 .scl{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
 .scv{font-size:20px;font-weight:600;font-family:var(--mono);color:var(--t1)}
@@ -364,6 +364,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
     <div class="sc"><div class="scl">Wood Cost</div><div class="scv w" id="sv4">—</div></div>
     <div class="sc"><div class="scl">Metal Cost</div><div class="scv m" id="sv5">—</div></div>
     <div class="sc"><div class="scl">Gate Cost</div><div class="scv gt" id="sv6">—</div></div>
+    <div class="sc"><div class="scl">Total Cost</div><div class="scv g" id="sv7">—</div></div>
   </div>
   <div id="pcontrols">
     <input id="psearch" placeholder="search batch, date, s/o, traveler, code, description…"/>
@@ -614,7 +615,7 @@ let ch1i, ch2i, ch3i, ch4i;
 let dbCache = null; // cached DB rows
  
 // ── WOOD SET ─────────────────────────────────────────────────────────────────
-const WOOD = new Set(["W2DL4","WMA6","WNE6","WNM6","WOK4","WOK5","WOK6","WT12-2DL","WT12-2SL","WUT-6","CS-CUS","SS-CUS","W1DL4","W1DL5","W1DL6","W1SL4","W1SL5","W1SL6","W2DL4F","W2DL5","W2DL6","W2KA3-1","W2KA4-1","W2KA5-1","W2SL4","W2SL5","W2SL6","W4DL4","W4DL5","W4DL6","W4KA3-1","W4KA4-1","W4KA5-1","W4SL4","W4SL5","W4SL6","WAZ-CUS","WAZ3-2","WAZ4-2","WAZ5-2","WBW-CUS","WBW4","WBW5","WBW6","WCO-CUS","WCO4","WCO5","WCO6","WCT-CUS","WDE-CUS","WDE4-2","WDE4-3","WDL-CUS","WDLARB48","WFI-CUS","WFL-CUS","WFL4","WFL5","WFL6","WHI-CUS","WHI4","WHI5","WHI6","WIL-CUS","WIL3-2","WIL3-3","WIL4-2","WIL4-3","WIL5-2","WIL5-3","WIL6-2","WIL6-3","WKA-CUS","WKY-CUS","WKY4","WKY5","WKY6","WMA-CUS","WMA4","WMA5","WMD-CUS","WMI-CUS","WMN-CUS","WMN4","WMN5","WMN6","WMO-CUS","WMO4","WMO5","WMO6","WMT-CUS","WMT4","WMT5","WMT6","WMT6CBR","WNC-CUS","WND-CUS","WNE-CUS","WNE4","WNE5","WNE7","WNE8","WNH-CUS","WNH4","WNH5","WNH6","WNM-CUS","WNM4","WNM5","WNM7","WNM8","WNV-CUS","WNY-CUS","WNY4","WNY5","WNY6","WOK-CUS","WOK3","WOK7","WOK8","WPA-CUS","WPA4","WPA5","WPA6","WPA7","WPA8","WRI-CUS","WSC-CUS","WSD-CUS","WSL-CUS","WTN-CUS","WTN4","WTN5","WTN6","WTOP-CUS","WUT-4","WUT-5","WUT-7","WUT-8","WUT-CUS","WVT-CUS","WVT4","WVT5","WVT6","WW-CUS","WWI-CUS","CSG-CUS","CSG44","CSG45","CSG54","CSG55","CSG64","CSG65","CSG84","CSG85","RC2G3","RC2G4","RC2G5","RC3G3","RC3G4","RC3G5","SSG-CUS","WATG-CUS","WAZG-CUS","WBIRG-CUS","WBIRG44","WBIRG45","WBIRG54","WBIRG55","WBIRG64","WBIRG65","WBWG-CUS","WCOG-CUS","WCTG-CUS","WDALG-CUS","WDALG44","WDALG45","WDALG54","WDALG55","WDALG64","WDALG65","WDEG-CUS","WDEG44-2","WDEG44-3","WDENG-CUS","WDENG44","WDENG45","WDENG54","WDENG55","WDENG64","WDENG65","WDLG-CUS","WFIG-CUS","WFLG-CUS","WHIG-CUS","WILG-CUS","WILG34-2","WILG34-3","WILG35-2","WILG44-2","WILG44-3","WILG45-2","WILG54-2","WILG55-2","WKAG-CUS","WKYG-CUS","WMAG-CUS","WMDG-CUS","WMNG-CUS","WMOG-CUS","WMTG-CUS","WNCG-CUS","WNDG-CUS","WNEG-CUS","WNHG-CUS","WNMG-CUS","WNOG-CUS","WNORG-CUS","WNORG44","WNORG45","WNORG54","WNORG55","WNORG64","WNORG65","WNVG-CUS","WNYG-CUS","WOKG-CUS","WOKG64","WOKG64-2SL","WOKG65","WOKG65-2SL","WPAG-CUS","WRCG-CUS","WRIG-CUS","WSCG-CUS","WSDG-CUS","WSLG-CUS","WTNG-CUS","WUTG-CUS","WVTG-CUS","WWG-CUS","WWIG-CUS","WWYG-CUS","WWYG64","WWYG65","WGMOUNT-CUS","SP5","SP6","SS4","SS5","SS6","SS8","CS4","CS4-23DR","CS4-24DR","CS5","CS5-23DR","CS6","CS6-23DR","CS8","CSP4","CSP5","CSP6","CSP8","CSSP3","CSSP4","CSSP4-23DR","CSSP4-24DR","CSSP5","CSSPG44","CSSPG45","CSSPG54","CSSPG55","SO-CS","ACQ-CUS","ACQ104","ACQ104H","ACQ105","ACQ105H","ACQ124","ACQ125","ACQ164","ACQ84","ACQ85","ACQ94H","ACQ95","WC-CUS","WC104","WC105","WC106","WC124","WC125","WC84","WC85","WC94","WC95","RC-CUS","RC124","RCC104","RCC94","WC166","WC168","WC238","WC248","WCB-CUS","WCD238","WCD248","RC138","RC144","RC144TG","RC145","RC146","RC148","RC148TG","RC224","RC226","RC228","RC264","RC265","RC268","RC284","RC285","RC286","RC287","RCB-CUS","RCC148","RCC168","RCC268","LGR3","LGR4","LGR5","LGR6","LSR-CUS","LSR2G3","LSR2G4","LSR2G5","LSR3G3","LSR3G4","LSR3G5","LSRG-CUS","PSR11","PSR2G4","PSR3G4","SO-LSR","CPR-CUS","DRC2G4","DRC2G5","DRC3G4","DRC3G5","RC2HC","RC2HE","RC2HL","RC3HC","RC3HE","RC3HL","RCP10","RCP7","RCP8","SO-WARB","WARB-CUS","WARCH36","WARCH42","WARCH48","WARCH60","WARCH72","WPER-CUS","WPER48","WPER60","WPER72"]);
+const WOOD = new Set(["W2DL4","WMA6","WNE6","WNM6","WOK4","WOK5","WOK6","WT12-2DL","WT12-2SL","WUT-6","CS-CUS","SS-CUS","W1DL4","W1DL5","W1DL6","W1SL4","W1SL5","W1SL6","W2DL4F","W2DL5","W2DL6","W2KA3-1","W2KA4-1","W2KA5-1","W2SL4","W2SL5","W2SL6","W4DL4","W4DL5","W4DL6","W4KA3-1","W4KA4-1","W4KA5-1","W4SL4","W4SL5","W4SL6","WAZ-CUS","WAZ3-2","WAZ4-2","WAZ5-2","WBW-CUS","WBW4","WBW5","WBW6","WCO-CUS","WCO4","WCO5","WCO6","WCT-CUS","WDE-CUS","WDE4-2","WDE4-3","WDL-CUS","WDLARB48","WFI-CUS","WFL-CUS","WFL4","WFL5","WFL6","WHI-CUS","WHI4","WHI5","WHI6","WIL-CUS","WIL3-2","WIL3-3","WIL4-2","WIL4-3","WIL5-2","WIL5-3","WIL6-2","WIL6-3","WKA-CUS","WKY-CUS","WKY4","WKY5","WKY6","WMA-CUS","WMA4","WMA5","WMD-CUS","WMI-CUS","WMN-CUS","WMN4","WMN5","WMN6","WMO-CUS","WMO4","WMO5","WMO6","WMT-CUS","WMT4","WMT5","WMT6","WMT6CBR","WNC-CUS","WND-CUS","WNE-CUS","WNE4","WNE5","WNE7","WNE8","WNH-CUS","WNH4","WNH5","WNH6","WNM-CUS","WNM4","WNM5","WNM7","WNM8","WNV-CUS","WNY-CUS","WNY4","WNY5","WNY6","WOK-CUS","WOK3","WOK7","WOK8","WPA-CUS","WPA4","WPA5","WPA6","WPA7","WPA8","WRI-CUS","WSC-CUS","WSD-CUS","WSL-CUS","WTN-CUS","WTN4","WTN5","WTN6","WTOP-CUS","WUT-4","WUT-5","WUT-7","WUT-8","WUT-CUS","WVT-CUS","WVT4","WVT5","WVT6","WW-CUS","WWI-CUS","CSG-CUS","CSG44","CSG45","CSG54","CSG55","CSG64","CSG65","CSG84","CSG85","RC2G3","RC2G4","RC2G5","RC3G3","RC3G4","RC3G5","SSG-CUS","SSG44","SSG45","SSG54","SSG55","SSG64","SSG65","SSG84","SSG85","SAM-CUS","SAM4","SAM5","SAM6","WATG-CUS","WAZG-CUS","WBIRG-CUS","WBIRG44","WBIRG45","WBIRG54","WBIRG55","WBIRG64","WBIRG65","WBWG-CUS","WCOG-CUS","WCTG-CUS","WDALG-CUS","WDALG44","WDALG45","WDALG54","WDALG55","WDALG64","WDALG65","WDEG-CUS","WDEG44-2","WDEG44-3","WDENG-CUS","WDENG44","WDENG45","WDENG54","WDENG55","WDENG64","WDENG65","WDLG-CUS","WFIG-CUS","WFLG-CUS","WHIG-CUS","WILG-CUS","WILG34-2","WILG34-3","WILG35-2","WILG44-2","WILG44-3","WILG45-2","WILG54-2","WILG55-2","WKAG-CUS","WKYG-CUS","WMAG-CUS","WMDG-CUS","WMNG-CUS","WMOG-CUS","WMTG-CUS","WNCG-CUS","WNDG-CUS","WNEG-CUS","WNHG-CUS","WNMG-CUS","WNOG-CUS","WNORG-CUS","WNORG44","WNORG45","WNORG54","WNORG55","WNORG64","WNORG65","WNVG-CUS","WNYG-CUS","WOKG-CUS","WOKG64","WOKG64-2SL","WOKG65","WOKG65-2SL","WPAG-CUS","WRCG-CUS","WRIG-CUS","WSCG-CUS","WSDG-CUS","WSLG-CUS","WTNG-CUS","WUTG-CUS","WVTG-CUS","WWG-CUS","WWIG-CUS","WWYG-CUS","WWYG64","WWYG65","WGMOUNT-CUS","SP5","SP6","SS4","SS5","SS6","SS8","CS4","CS4-23DR","CS4-24DR","CS5","CS5-23DR","CS6","CS6-23DR","CS8","CSP4","CSP5","CSP6","CSP8","CSSP3","CSSP4","CSSP4-23DR","CSSP4-24DR","CSSP5","CSSPG44","CSSPG45","CSSPG54","CSSPG55","SO-CS","ACQ-CUS","ACQ104","ACQ104H","ACQ105","ACQ105H","ACQ124","ACQ125","ACQ164","ACQ84","ACQ85","ACQ94H","ACQ95","WC-CUS","WC104","WC105","WC106","WC124","WC125","WC84","WC85","WC94","WC95","RC-CUS","RC124","RCC104","RCC94","WC166","WC166TG","WC168","WC168TG","WC238","WC248","WCB-CUS","WCD238","WCD248","RC138","RC144","RC144TG","RC145","RC146","RC146TG","RC148","RC148TG","RC224","RC226","RC228","RC264","RC265","RC268","RC284","RC285","RC286","RC287","RCB-CUS","RCC148","RCC168","RCC268","LGR3","LGR4","LGR5","LGR6","LSR-CUS","LSR2G3","LSR2G4","LSR2G5","LSR3G3","LSR3G4","LSR3G5","LSRG-CUS","PSR11","PSR2G4","PSR3G4","SO-LSR","CPR-CUS","DRC2G4","DRC2G5","DRC3G4","DRC3G5","RC2HC","RC2HE","RC2HL","RC3HC","RC3HE","RC3HL","RCP10","RCP7","RCP8","SO-WARB","WARB-CUS","WARCH36","WARCH42","WARCH48","WARCH60","WARCH72","WPER-CUS","WPER48","WPER60","WPER72"]);
  
 function mat(c) {
   const u = c.toUpperCase();
@@ -624,7 +625,7 @@ function mat(c) {
   if (/^CLG/.test(u) || /^CG\d/.test(u) || /^CLGG/.test(u) || /^CLGC/.test(u) || /^CLGF/.test(u)) return 'metal';
   if (u === 'GP-CUS' || /^GP-/.test(u)) return 'metal';
   if (u === 'CP-CUS' || /^CP-/.test(u)) return 'metal';
-  const WP = ["ACQ","CSSP","CSSPG","CSG","CSP","CS4","CS5","CS6","CS8","W","SS4","SS5","SS6","SS8","LSR","PSR","LGR","CPR","DRC","RCP","WARB","WARCH","WPER","WDAL","LSRG","RC1","RC2","RC3","RCB","RCC"];
+  const WP = ["ACQ","CSSP","CSSPG","CSG","CSP","CSS","CS4","CS5","CS6","CS8","SSG","SAM","W","SS4","SS5","SS6","SS8","LSR","PSR","LGR","CPR","DRC","RCP","WARB","WARCH","WPER","WDAL","LSRG","RC1","RC2","RC3","RCB","RCC"];
   const MP = ["CLG","CP-","CPI","GP-","GPI","BLS","TLS","BVL","BVE","BVC","BTB","BBB","LBB","LTB","MOH","MPH","MFH","FP","TRUSS","N38","N516","NB","IDR","VFT","AFT","WTS","MTB","TW-","STD"];
   for (const p of WP) if (u.startsWith(p)) return 'wood';
   for (const p of MP) if (u.startsWith(p)) return 'metal';
@@ -763,9 +764,11 @@ async function runPDF(file) {
         document.getElementById('sv1').textContent = ocrEntries.length;
         document.getElementById('sv2').textContent = sos2.size;
         document.getElementById('sv3').textContent = tq2.toLocaleString();
+        const tc2 = ocrEntries.reduce((s,r)=>s+r.ext,0);
         document.getElementById('sv4').textContent = '$' + fmt2(wc2);
         document.getElementById('sv5').textContent = '$' + fmt2(mc2);
         document.getElementById('sv6').textContent = '$' + fmt2(gc2);
+        document.getElementById('sv7').textContent = '$' + fmt2(tc2);
         document.getElementById('psummary').style.display = 'grid';
         document.getElementById('pcontrols').style.display = 'flex';
         document.getElementById('ppg').style.display = 'flex';
@@ -828,9 +831,11 @@ async function runPDF(file) {
   document.getElementById('sv1').textContent = entries.length;
   document.getElementById('sv2').textContent = sos.size;
   document.getElementById('sv3').textContent = tq.toLocaleString();
+  const tc = entries.reduce((s, r) => s + r.ext, 0);
   document.getElementById('sv4').textContent = '$' + fmt2(wc);
   document.getElementById('sv5').textContent = '$' + fmt2(mc);
   document.getElementById('sv6').textContent = '$' + fmt2(gc);
+  document.getElementById('sv7').textContent = '$' + fmt2(tc);
   document.getElementById('psummary').style.display = 'grid';
   document.getElementById('pcontrols').style.display = 'flex';
   document.getElementById('ppg').style.display = 'flex';
