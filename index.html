@@ -747,6 +747,42 @@ async function runPDF(file) {
   for (let i = 0; i < lines.length; i++)
     if (lines[i].toks.some(t => /^0{5,}\d{5,}$/.test(t))) wti.push(i);
  
+  // ── SCANNED PDF DETECTION ─────────────────────────────────────────────────
+  if (wti.length === 0) {
+    sts('No text found \u2014 running OCR on scanned PDF\u2026', true);
+    try {
+      const ocrEntries = await runOCR(pdf, np, meta);
+      if (ocrEntries && ocrEntries.length > 0) {
+        parsed = ocrEntries;
+        sts('\u2713 OCR: ' + ocrEntries.length + ' work tickets extracted \u00b7 Journal Date: ' + meta.date, false);
+        const sos2 = new Set(ocrEntries.filter(r => !r.isInv).map(r => r.so));
+        const tq2 = ocrEntries.reduce((s,r)=>s+r.qty,0);
+        const wc2 = ocrEntries.filter(r=>r.material==='wood').reduce((s,r)=>s+r.ext,0);
+        const mc2 = ocrEntries.filter(r=>r.material==='metal').reduce((s,r)=>s+r.ext,0);
+        const gc2 = ocrEntries.filter(r=>r.material==='gate').reduce((s,r)=>s+r.ext,0);
+        document.getElementById('sv1').textContent = ocrEntries.length;
+        document.getElementById('sv2').textContent = sos2.size;
+        document.getElementById('sv3').textContent = tq2.toLocaleString();
+        document.getElementById('sv4').textContent = '$' + fmt2(wc2);
+        document.getElementById('sv5').textContent = '$' + fmt2(mc2);
+        document.getElementById('sv6').textContent = '$' + fmt2(gc2);
+        document.getElementById('psummary').style.display = 'grid';
+        document.getElementById('pcontrols').style.display = 'flex';
+        document.getElementById('ppg').style.display = 'flex';
+        document.getElementById('savebtn').style.display = 'inline-block';
+        doFilter();
+        await ttCheckAgainstBatch(ocrEntries, meta.batch, meta.date);
+        return;
+      } else {
+        sts('OCR found no entries. Check the PDF format.', false);
+        return;
+      }
+    } catch(ocrErr) {
+      sts('OCR failed: ' + ocrErr.message, false);
+      return;
+    }
+  }
+ 
   const entries = [];
   for (let wi = 0; wi < wti.length; wi++) {
     const li = wti[wi], nx = wi + 1 < wti.length ? wti[wi + 1] : lines.length;
@@ -812,6 +848,82 @@ function m2p(m) {
   if (m === 'metal') return '<span class="pill pill-metal">Metal</span>';
   if (m === 'gate') return '<span class="pill pill-gate">Gate</span>';
   return '<span class="pill pill-other">Other</span>';
+}
+ 
+ 
+// ── OCR FALLBACK FOR SCANNED PDFs ──────────────────────────────────────────────
+async function runOCR(pdf, numPages, meta) {
+  const allEntries = [];
+  for (let p = 1; p <= numPages; p++) {
+    sts('OCR: rendering page ' + p + ' of ' + numPages + '…', true);
+    const page = await pdf.getPage(p);
+    const scale = 2.5;
+    const vp = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = vp.width;
+    canvas.height = vp.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    const b64 = canvas.toDataURL('image/jpeg', 0.92).split(',')[1];
+    sts('OCR: analyzing page ' + p + ' of ' + numPages + ' with AI…', true);
+    const prompt = 'This is a Work Ticket Transaction Register from Amendola Industries Inc. '
+      + 'Extract every work ticket row and return ONLY a valid JSON array. '
+      + 'Each element must have: '
+      + 'wt (W/T Number, digits only, strip leading zeros), '
+      + 'so (S/O number like "0653594" or the string "Inventory"), '
+      + 'isInv (true if Inventory, false if S/O), '
+      + 'code (Item Code e.g. "OKG-CUS"), '
+      + 'desc (Item Description or empty string), '
+      + 'qty (Quantity as number), '
+      + 'unit (Unit Cost as number), '
+      + 'ext (Extended Cost as number). '
+      + 'Journal date: ' + meta.date + '. Batch: ' + meta.batch + '. '
+      + 'Return ONLY the JSON array starting with [ and ending with ]. No markdown, no explanation.';
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } },
+          { type: 'text', text: prompt }
+        ]}]
+      })
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error('API error ' + res.status + ': ' + errText.slice(0, 200));
+    }
+    const data = await res.json();
+    const raw = (data.content || []).map(function(c){ return c.text || ''; }).join('').trim();
+    let pageEntries;
+    try {
+      const clean = raw.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+      pageEntries = JSON.parse(clean);
+    } catch(e) {
+      console.warn('OCR page ' + p + ' parse failed. Raw:', raw.slice(0,200));
+      continue;
+    }
+    if (!Array.isArray(pageEntries)) continue;
+    for (const r of pageEntries) {
+      if (!r.wt || !r.code) continue;
+      const codeUpper = String(r.code).toUpperCase().trim();
+      allEntries.push({
+        date: meta.date, batch: meta.batch,
+        wt: String(r.wt).replace(/^0+/,''),
+        so: r.so || 'Inventory',
+        isInv: r.isInv === true || String(r.so||'').toLowerCase() === 'inventory',
+        code: codeUpper,
+        desc: r.desc || '',
+        qty: parseFloat(String(r.qty||'0').replace(/,/g,'')) || 0,
+        unit: parseFloat(String(r.unit||'0').replace(/,/g,'')) || 0,
+        ext: parseFloat(String(r.ext||'0').replace(/,/g,'')) || 0,
+        material: mat(codeUpper)
+      });
+    }
+  }
+  return allEntries;
 }
  
 // ── TABLE FILTERING & RENDERING ───────────────────────────────────────────────
