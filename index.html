@@ -493,15 +493,15 @@ tbody td{padding:8px 12px;vertical-align:middle}
     </div>
     <div class="kpis" style="grid-template-columns:repeat(5,1fr)">
       <div class="kpi"><div class="kpi-l">Total Entries</div><div class="kpi-v" id="kv1">—</div><div class="kpi-s" id="ks1">—</div></div>
-      <div class="kpi"><div class="kpi-l">Total Revenue</div><div class="kpi-v g" id="kv2">—</div><div class="kpi-s" id="ks2">All time</div></div>
-      <div class="kpi"><div class="kpi-l">Wood Revenue</div><div class="kpi-v w" id="kv3">—</div><div class="kpi-s" id="ks3">—</div></div>
-      <div class="kpi"><div class="kpi-l">Metal Revenue</div><div class="kpi-v b" id="kv4">—</div><div class="kpi-s" id="ks4">—</div></div>
-      <div class="kpi"><div class="kpi-l">Gate Revenue</div><div class="kpi-v gt" id="kv5">—</div><div class="kpi-s" id="ks5">—</div></div>
+      <div class="kpi"><div class="kpi-l">Total Cost</div><div class="kpi-v g" id="kv2">—</div><div class="kpi-s" id="ks2">All time</div></div>
+      <div class="kpi"><div class="kpi-l">Wood Cost</div><div class="kpi-v w" id="kv3">—</div><div class="kpi-s" id="ks3">—</div></div>
+      <div class="kpi"><div class="kpi-l">Metal Cost</div><div class="kpi-v b" id="kv4">—</div><div class="kpi-s" id="ks4">—</div></div>
+      <div class="kpi"><div class="kpi-l">Gate Cost</div><div class="kpi-v gt" id="kv5">—</div><div class="kpi-s" id="ks5">—</div></div>
     </div>
     <div class="cgrid">
-      <div class="card"><div class="card-t">Revenue by Month</div><div class="card-s">Total extended cost per month</div><div class="chwrap"><canvas id="ch1"></canvas></div></div>
+      <div class="card"><div class="card-t">Cost by Month</div><div class="card-s">Total production cost per month</div><div class="chwrap"><canvas id="ch1"></canvas></div></div>
       <div class="card"><div class="card-t">Wood vs Metal vs Gate by Month</div><div class="card-s">Department split over time</div><div class="chwrap"><canvas id="ch2"></canvas></div></div>
-      <div class="card full"><div class="card-t" id="ch3-title">Top 15 Item Codes — All-Time Revenue</div><div class="card-s">Ranked by total extended cost</div><div class="chwrap tall"><canvas id="ch3"></canvas></div></div>
+      <div class="card full"><div class="card-t" id="ch3-title">Top 15 Item Codes — All-Time Cost</div><div class="card-s">Ranked by total extended cost</div><div class="chwrap tall"><canvas id="ch3"></canvas></div></div>
     </div>
     <div class="excard">
       <div class="excard-t">Item Code Explorer</div>
@@ -511,7 +511,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
       </div>
       <div class="cstats" id="cstats" style="display:none">
         <div class="cstat"><div class="cstat-l">Total Qty</div><div class="cstat-v" id="ex1">—</div></div>
-        <div class="cstat"><div class="cstat-l">Total Revenue</div><div class="cstat-v" id="ex2">—</div></div>
+        <div class="cstat"><div class="cstat-l">Total Cost</div><div class="cstat-v" id="ex2">—</div></div>
         <div class="cstat"><div class="cstat-l">Batches</div><div class="cstat-v" id="ex3">—</div></div>
       </div>
       <div class="chwrap" id="exchwrap" style="display:none"><canvas id="ch4"></canvas></div>
@@ -1337,7 +1337,7 @@ function buildCh1(e) {
   const bm = {}; e.forEach(r => { const k = mkey(r.date); bm[k] = (bm[k] || 0) + r.ext; });
   const ks = Object.keys(bm).sort();
   if (ch1i) { ch1i.destroy(); ch1i = null; }
-  ch1i = new Chart(document.getElementById('ch1'), { type: 'bar', data: { labels: ks.map(mlbl), datasets: [{ label: 'Revenue', data: ks.map(k => bm[k]), backgroundColor: 'rgba(232,124,46,.65)', borderColor: '#e87c2e', borderWidth: 1, borderRadius: 3 }] }, options: CO });
+  ch1i = new Chart(document.getElementById('ch1'), { type: 'bar', data: { labels: ks.map(mlbl), datasets: [{ label: 'Cost', data: ks.map(k => bm[k]), backgroundColor: 'rgba(232,124,46,.65)', borderColor: '#e87c2e', borderWidth: 1, borderRadius: 3 }] }, options: CO });
 }
  
 function buildCh2(e) {
@@ -1364,7 +1364,7 @@ function buildCh3(e) {
   });
   if (ch3i) { ch3i.destroy(); ch3i = null; }
   ch3i = new Chart(document.getElementById('ch3'), {
-    type: 'bar', data: { labels: sorted.map(([c]) => c), datasets: [{ label: 'Revenue', data: sorted.map(([, v]) => v), backgroundColor: cols, borderRadius: 3 }] },
+    type: 'bar', data: { labels: sorted.map(([c]) => c), datasets: [{ label: 'Cost', data: sorted.map(([, v]) => v), backgroundColor: cols, borderRadius: 3 }] },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { labels: { color: '#8a8980', font: { size: 10, family: "'IBM Plex Mono'" } } } },
@@ -1680,7 +1680,7 @@ function selectMonth(key) {
     document.getElementById('ks2').textContent = lbl;
   } else {
     document.getElementById('db-title').textContent = 'Set Month Overview';
-    document.getElementById('ch3-title').textContent = 'Top 15 Item Codes — All-Time Revenue';
+    document.getElementById('ch3-title').textContent = 'Top 15 Item Codes — All-Time Cost';
     document.getElementById('ks2').textContent = 'All time';
   }
   updateKPIs(filtered);
