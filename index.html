@@ -1567,10 +1567,11 @@ let recRows = [], recFilt = [], recPg = 1, recPp = 50, recSc = null, recSd = 1;
 let recFso = true, recFinv = true, recFwd = true, recFmt = true, recFgate = true, recFunk = true;
  
 async function renderRecords() {
-  document.getElementById('rec-tbody').innerHTML = '<tr><td colspan="10" style="padding:3rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:12px">Loading…</td></tr>';
+  document.getElementById('rec-tbody').innerHTML = '<tr><td colspan="13" style="padding:3rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:12px">Loading…</td></tr>';
   showLoader('Loading records…');
   try {
-    const raw = await sbFetchAll();
+    const [raw, spMap] = await Promise.all([sbFetchAll(), spFetchAll()]);
+    spCache = spMap;
     hideLoader();
     recRows = raw.map(r => ({
       date: r.journal_date ? (r.journal_date.slice(5,7)+'/'+r.journal_date.slice(8,10)+'/'+r.journal_date.slice(0,4)) : '—',
@@ -1592,7 +1593,7 @@ async function renderRecords() {
     recFilter();
   } catch(e) {
     hideLoader();
-    document.getElementById('rec-tbody').innerHTML = `<tr><td colspan="10" style="padding:2rem;text-align:center;color:var(--rd-t);font-family:var(--mono);font-size:11px">Error: ${e.message}</td></tr>`;
+    document.getElementById('rec-tbody').innerHTML = `<tr><td colspan="13" style="padding:2rem;text-align:center;color:var(--rd-t);font-family:var(--mono);font-size:11px">Error: ${e.message}</td></tr>`;
   }
 }
  
@@ -1639,13 +1640,19 @@ function recDraw() {
   const tb = document.getElementById('rec-tbody');
   const s = (recPg-1)*recPp, e = Math.min(s+recPp, recFilt.length);
   if (!recFilt.length) {
-    tb.innerHTML = '<tr><td colspan="10" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">no entries match</td></tr>';
+    tb.innerHTML = '<tr><td colspan="13" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">no entries match</td></tr>';
     document.getElementById('rec-pginfo').textContent = '';
     document.getElementById('rec-prev').disabled = true;
     document.getElementById('rec-next').disabled = true;
     return;
   }
-  tb.innerHTML = recFilt.slice(s,e).map(r => `<tr style="border-bottom:1px solid var(--b1)">
+  tb.innerHTML = recFilt.slice(s,e).map(r => {
+    const sp = spCache[r.wt] || 0;
+    const margin = sp - r.ext;
+    const marginPct = r.ext > 0 ? (margin / r.ext * 100) : 0;
+    const marginClass = margin > 0 ? 'margin-pos' : margin < 0 ? 'margin-neg' : 'margin-zero';
+    const spVal = sp > 0 ? sp.toFixed(2) : '';
+    return `<tr style="border-bottom:1px solid var(--b1)">
     <td class="cdate">${r.date}</td>
     <td style="font-family:var(--mono);font-size:11px;color:var(--t3)">${r.batch}</td>
     <td>${r.isInv ? '<span class="pill pill-inv">Inventory</span>' : `<span class="pill pill-so">${r.so}</span>`}</td>
@@ -1656,7 +1663,11 @@ function recDraw() {
     <td class="cnum">${r.qty.toFixed(2)}</td>
     <td class="cnum">$${fmt3(r.unit)}</td>
     <td class="cext">$${fmt2(r.ext)}</td>
-  </tr>`).join('');
+    <td><input class="sale-input${sp > 0 ? ' saved' : ''}" type="number" min="0" step="0.01" placeholder="0.00" value="${spVal}" data-wt="${r.wt}" onchange="spSave(this)" onblur="spSave(this)"/></td>
+    <td class="${marginClass}">${sp > 0 ? '$' + fmt2(margin) : '—'}</td>
+    <td class="${marginClass}">${sp > 0 ? marginPct.toFixed(1) + '%' : '—'}</td>
+  </tr>`;
+  }).join('');
   document.getElementById('rec-pginfo').textContent = `${s+1}–${e} of ${recFilt.length.toLocaleString()}`;
   document.getElementById('rec-prev').disabled = recPg === 1;
   document.getElementById('rec-next').disabled = e >= recFilt.length;
