@@ -925,36 +925,64 @@ function parseOCRText(text, batch, date) {
   var entries = [];
   var lines = text.split('\n').map(function(l){ return l.trim(); });
  
-  // WT line pattern: "000000426374 OKG-CUS 000 Yes 1.00 124.460 124.46"
-  // Groups: (wt_number) (item_code) (whse=000) Yes (qty) (unit) (ext)
-  var wtRe = /^(0{3,}\d{5,})\s+([A-Z0-9][A-Z0-9\-\.]+)\s+\d{3}\s+Yes\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)$/;
+  // WT line: "000000426374 OKG-CUS 000 Yes 1.00 124.460 124.46"
+  // Relaxed: item code can have digits, letters, hyphens, dots, underscores
+  var wtRe = /^(0{3,}\d{5,})\s+([A-Z0-9][A-Z0-9\-\._]+)\s+\d{3}\s+Yes\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s*$/;
+ 
+  // More relaxed fallback: sometimes OCR drops spaces or slightly mangles
+  var wtRelaxed = /^(0{3,}\d{5,})\s+([A-Z0-9][A-Z0-9\-\._]+)\s+\d{3}\s+Yes\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)/;
  
   var skipPrefixes = ['Run Date','P/M Date','Work Ticket','Journal Posting',
     'Close/Completion','Batch Number','Amendola','Trans Number',
-    'W/T Number','Item Description','Total Cost'];
+    'W/T Number','Item Description','Total Cost','Make For'];
  
   function isSkip(line) {
     return skipPrefixes.some(function(p){ return line.indexOf(p) === 0; });
   }
   function isEALine(line) {
-    return /^\d+\.?\d*\s+EA\s*$/.test(line) || /^\d+\.?\d*\s*EA\s*$/.test(line);
+    return /^\d+\.?\d*\s+(EA)?\s*$/.test(line);
+  }
+  function isSO(line) {
+    // "S/O 0654266 1.00" or "S/O 0654266"
+    return /^S[\/\\.]?\s*[O0]\s+0\d{5,}/i.test(line);
+  }
+  function extractSO(line) {
+    var m = line.match(/0\d{5,8}/);
+    return m ? m[0] : null;
+  }
+  function isInventory(line) {
+    return /^Inventory\b/i.test(line);
   }
   function fixNum(s) {
-    // "131,820" where comma is OCR error for period — if >4 digits before comma treat as decimal
     var cleaned = s.replace(/,/g,'');
     var f = parseFloat(cleaned);
-    // If original had comma and value looks like it should be small (unit cost)
-    // e.g. "131,820" → 131.820
-    if (s.indexOf(',') !== -1 && f > 10000 && s.split(',')[1] && s.split(',')[1].length <= 3) {
-      return parseFloat(s.replace(',', '.'));
+    // "131,820" OCR reads comma instead of period — detect by: has comma, >4 digits before it, <=3 after
+    if (s.indexOf(',') !== -1) {
+      var parts = s.split(',');
+      if (parts[0].length >= 3 && parts[1] && parts[1].length <= 3) {
+        var alt = parseFloat(parts[0] + '.' + parts[1]);
+        // If the alt value is more reasonable for a unit cost (< 10000), prefer it
+        if (alt < 10000 && f >= 10000) return alt;
+      }
     }
     return f;
+  }
+  function isDesc(line) {
+    return line.length > 3
+      && /[A-Za-z]{2,}/.test(line)
+      && !isSkip(line)
+      && !isEALine(line)
+      && !isSO(line)
+      && !isInventory(line)
+      && !wtRe.test(line)
+      && !wtRelaxed.test(line)
+      && !/^\d+\.?\d*\s+EA/.test(line);
   }
  
   var i = 0;
   while (i < lines.length) {
     var line = lines[i];
-    var m = line.match(wtRe);
+    var m = line.match(wtRe) || line.match(wtRelaxed);
     if (m) {
       var wt   = m[1].replace(/^0+/,'');
       var code = m[2].toUpperCase();
@@ -964,23 +992,20 @@ function parseOCRText(text, batch, date) {
  
       var so = null, isInv = false, desc = '';
  
-      // Scan next lines for S/O, Inventory, and description
-      for (var j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+      // Scan next up to 5 lines
+      for (var j = i + 1; j < Math.min(i + 6, lines.length); j++) {
         var nl = lines[j];
         if (!nl) continue;
-        // Stop if we hit the next WT entry
-        if (wtRe.test(nl)) break;
-        // S/O line: "S/O 0654104 1.00" — tolerant match
-        var soM = nl.match(/^S[\/.\\]?\s*[O0]\s+(0\d{5,8})/i);
-        if (soM) { so = soM[1]; continue; }
+        // Stop at next WT entry
+        if (wtRe.test(nl) || wtRelaxed.test(nl)) break;
+        // S/O line
+        if (isSO(nl)) { so = extractSO(nl); continue; }
         // Inventory
-        if (/^Inventory\b/i.test(nl)) { isInv = true; continue; }
-        // Skip pure number lines, EA lines, header lines
-        if (/^[\d\s.,]+$/.test(nl)) continue;
-        if (isEALine(nl)) continue;
-        if (isSkip(nl)) continue;
-        // Description: has letters, not a WT line
-        if (/[A-Za-z]{2,}/.test(nl)) {
+        if (isInventory(nl)) { isInv = true; continue; }
+        // Skip EA-only, pure numbers, headers
+        if (isEALine(nl) || isSkip(nl) || /^[\d\s.,]+$/.test(nl)) continue;
+        // Description
+        if (isDesc(nl) && !desc) {
           desc = nl.replace(/^[\*\s]+/,'').replace(/\s+\d+\.?\d*\s+EA\s*$/,'').trim();
         }
       }
@@ -2175,4 +2200,3 @@ ttFetchAll().then(function(data){ ttData=data; ttUpdateNavBadge(); }).catch(func
 </script>
  
 </body>
-</html>
