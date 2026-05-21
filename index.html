@@ -1561,7 +1561,94 @@ async function spUpsert(travelerNum, salePrice) {
   if (!res.ok) throw new Error(await res.text());
 }
  
+// ── SO TAGS (Supabase) ────────────────────────────────────────────────────────
+async function tagFetchAll() {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/so_tags?select=*', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (!res.ok) return {};
+    const rows = await res.json();
+    const map = {};
+    rows.forEach(r => { map[r.traveler_number] = r.tag; });
+    return map;
+  } catch(e) { return {}; }
+}
+async function tagUpsert(travelerNum, tag) {
+  const res = await fetch(SB_URL + '/rest/v1/so_tags?on_conflict=traveler_number', {
+    method: 'POST',
+    headers: { ...sbHeaders, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({ traveler_number: travelerNum, tag: tag })
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+async function tagDeleteRow(travelerNum) {
+  const res = await fetch(SB_URL + '/rest/v1/so_tags?traveler_number=eq.' + encodeURIComponent(travelerNum), {
+    method: 'DELETE',
+    headers: sbHeaders
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+ 
+// ── TAG LIBRARY (list stored in localStorage) ─────────────────────────────────
+var tlTags = JSON.parse(localStorage.getItem('aii_tag_library') || '[]');
 var spCache = {}; // traveler_number -> sale_price
+var tagCache = {}; // traveler_number -> tag
+ 
+function tlSave() {
+  localStorage.setItem('aii_tag_library', JSON.stringify(tlTags));
+}
+function tlToggle() {
+  const btn = document.getElementById('tag-library-toggle');
+  btn.classList.toggle('open');
+}
+function tlRender() {
+  const list = document.getElementById('tl-tags-list');
+  if (!list) return;
+  const count = document.getElementById('tl-count');
+  if (count) count.textContent = tlTags.length ? '(' + tlTags.length + ')' : '';
+  if (!tlTags.length) {
+    list.innerHTML = '<span class="tl-empty">No tags yet. Add one above.</span>';
+  } else {
+    list.innerHTML = tlTags.map(function(t){ return '<span class="tl-tag">' + t + '<button class="tl-tag-del" onclick="tlRemove(' + JSON.stringify(t) + ')" title="Remove tag">×</button></span>'; }).join('');
+  }
+}
+function tlAdd() {
+  const inp = document.getElementById('tl-new-input');
+  const val = inp.value.trim();
+  if (!val) return;
+  if (tlTags.includes(val)) { toast('Tag "' + val + '" already exists.', 'err'); return; }
+  tlTags.push(val);
+  tlTags.sort((a, b) => a.localeCompare(b));
+  tlSave();
+  inp.value = '';
+  tlRender();
+  toast('Tag "' + val + '" added.', 'ok');
+}
+function tlRemove(tag) {
+  if (!confirm('Remove tag "' + tag + '" from the library?')) return;
+  tlTags = tlTags.filter(t => t !== tag);
+  tlSave();
+  tlRender();
+  toast('Tag removed.', 'ok');
+}
+async function tagSave(sel) {
+  const wt = sel.getAttribute('data-wt');
+  const val = sel.value;
+  try {
+    if (val) {
+      await tagUpsert(wt, val);
+      tagCache[wt] = val;
+      sel.classList.add('tagged');
+    } else {
+      await tagDeleteRow(wt);
+      delete tagCache[wt];
+      sel.classList.remove('tagged');
+    }
+  } catch(e) {
+    toast('Error saving tag: ' + e.message, 'err');
+  }
+}
  
 let recRows = [], recFilt = [], recPg = 1, recPp = 50, recSc = null, recSd = 1;
 let recFso = true, recFinv = true, recFwd = true, recFmt = true, recFgate = true, recFunk = true;
