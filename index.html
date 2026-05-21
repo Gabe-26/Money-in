@@ -324,6 +324,14 @@ tbody td{padding:8px 12px;vertical-align:middle}
 .sc-search:focus{outline:none;border-color:var(--gr)}
 .sc-search::placeholder{color:var(--t3)}
 .sc-count{font-size:10px;font-family:var(--mono);color:var(--t3);margin-bottom:8px}
+ 
+/* ── SALES PRICE / MARGIN ── */
+.sale-input{width:90px;padding:3px 6px;border:1px solid var(--b2);border-radius:4px;background:var(--s2);color:var(--t1);font-size:11px;font-family:var(--mono);text-align:right}
+.sale-input:focus{outline:none;border-color:var(--gr)}
+.sale-input.saved{border-color:rgba(39,174,96,.4);background:rgba(39,174,96,.05)}
+.margin-pos{color:#4cd68a;font-family:var(--mono);font-size:11px;font-weight:600}
+.margin-neg{color:var(--rd-t);font-family:var(--mono);font-size:11px;font-weight:600}
+.margin-zero{color:var(--t3);font-family:var(--mono);font-size:11px}
 </style>
 </head>
 <body>
@@ -446,6 +454,9 @@ tbody td{padding:8px 12px;vertical-align:middle}
         <th onclick="recSrt('qty')"  id="rhqty">Qty</th>
         <th onclick="recSrt('unit')" id="rhunit">Unit Cost</th>
         <th onclick="recSrt('ext')"  id="rhext">Ext. Cost</th>
+        <th style="min-width:100px">Sale Price</th>
+        <th onclick="recSrt('margin')" id="rhmargin" style="min-width:80px">Margin $</th>
+        <th style="min-width:70px">Margin %</th>
       </tr></thead>
       <tbody id="rec-tbody">
         <tr><td colspan="10" style="padding:3rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:12px">Loading…</td></tr>
@@ -1154,7 +1165,7 @@ function drawTable() {
   const tb = document.getElementById('tbody');
   const s = (pg - 1) * pp, e = Math.min(s + pp, filt.length);
   if (!filt.length) {
-    tb.innerHTML = '<tr><td colspan="10" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">no entries match</td></tr>';
+    tb.innerHTML = '<tr><td colspan="13" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">no entries match</td></tr>';
     return;
   }
   tb.innerHTML = filt.slice(s, e).map(r => `<tr>
@@ -1528,6 +1539,30 @@ async function updateBadge() {
 }
  
 // ── RECORDS TAB ───────────────────────────────────────────────────────────────
+ 
+// ── SALE PRICES (Supabase) ────────────────────────────────────────────────────
+async function spFetchAll() {
+  const res = await fetch(SB_URL + '/rest/v1/sale_prices?select=*', {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  });
+  if (!res.ok) return {};
+  const rows = await res.json();
+  // Return as map: traveler_number -> sale_price
+  const map = {};
+  rows.forEach(r => { map[r.traveler_number] = parseFloat(r.sale_price) || 0; });
+  return map;
+}
+async function spUpsert(travelerNum, salePrice) {
+  const res = await fetch(SB_URL + '/rest/v1/sale_prices', {
+    method: 'POST',
+    headers: { ...sbHeaders, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({ traveler_number: travelerNum, sale_price: salePrice })
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+ 
+var spCache = {}; // traveler_number -> sale_price
+ 
 let recRows = [], recFilt = [], recPg = 1, recPp = 50, recSc = null, recSd = 1;
 let recFso = true, recFinv = true, recFwd = true, recFmt = true, recFgate = true, recFunk = true;
  
@@ -1561,6 +1596,21 @@ async function renderRecords() {
   }
 }
  
+ 
+async function spSave(input) {
+  const wt = input.getAttribute('data-wt');
+  const val = parseFloat(input.value) || 0;
+  if (val === (spCache[wt] || 0)) return; // no change
+  try {
+    await spUpsert(wt, val);
+    spCache[wt] = val;
+    input.classList.add('saved');
+    // Re-render just this row's margin cells
+    recDraw();
+  } catch(e) {
+    toast('Error saving sale price: ' + e.message, 'err');
+  }
+}
 function recFilter() {
   const q = (document.getElementById('recsearch').value || '').toLowerCase();
   const batchFilter = document.getElementById('rec-batch-sel').value;
