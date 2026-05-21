@@ -1605,14 +1605,37 @@ async function tagDeleteRow(travelerNum) {
   if (!res.ok) throw new Error(await res.text());
 }
  
-// ── TAG LIBRARY (list stored in localStorage) ─────────────────────────────────
-var tlTags = JSON.parse(localStorage.getItem('aii_tag_library') || '[]');
+// ── TAG LIBRARY (stored in Supabase tag_library table) ───────────────────────
+var tlTags = [];
 var spCache = {}; // traveler_number -> sale_price
 var tagCache = {}; // traveler_number -> tag
  
-function tlSave() {
-  localStorage.setItem('aii_tag_library', JSON.stringify(tlTags));
+async function tlFetchLibrary() {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/tag_library?select=tag&order=tag.asc', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (!res.ok) return [];
+    const rows = await res.json();
+    return rows.map(r => r.tag);
+  } catch(e) { return []; }
 }
+async function tlInsertTag(tag) {
+  const res = await fetch(SB_URL + '/rest/v1/tag_library', {
+    method: 'POST',
+    headers: { ...sbHeaders, 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ tag: tag })
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+async function tlDeleteTag(tag) {
+  const res = await fetch(SB_URL + '/rest/v1/tag_library?tag=eq.' + encodeURIComponent(tag), {
+    method: 'DELETE',
+    headers: sbHeaders
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+ 
 function tlToggle() {
   const body = document.getElementById('tag-library-body');
   const arrow = document.getElementById('tl-arrow');
@@ -1626,29 +1649,37 @@ function tlRender() {
   const count = document.getElementById('tl-count');
   if (count) count.textContent = tlTags.length ? '(' + tlTags.length + ')' : '';
   if (!tlTags.length) {
-    list.innerHTML = '<span class="tl-empty">No tags yet. Add one above.</span>';
+    list.innerHTML = '<span style="font-size:11px;font-family:var(--mono);color:var(--t3)">No tags yet. Add one above.</span>';
   } else {
     list.innerHTML = tlTags.map(function(t){ return '<span class="tl-tag">' + t + '<button class="tl-tag-del" onclick="tlRemove(' + JSON.stringify(t) + ')" title="Remove tag">×</button></span>'; }).join('');
   }
 }
-function tlAdd() {
+async function tlAdd() {
   const inp = document.getElementById('tl-new-input');
   const val = inp.value.trim();
   if (!val) return;
   if (tlTags.includes(val)) { toast('Tag "' + val + '" already exists.', 'err'); return; }
-  tlTags.push(val);
-  tlTags.sort((a, b) => a.localeCompare(b));
-  tlSave();
-  inp.value = '';
-  tlRender();
-  toast('Tag "' + val + '" added.', 'ok');
+  try {
+    await tlInsertTag(val);
+    tlTags.push(val);
+    tlTags.sort((a, b) => a.localeCompare(b));
+    inp.value = '';
+    tlRender();
+    toast('Tag "' + val + '" added.', 'ok');
+  } catch(e) {
+    toast('Error adding tag: ' + e.message, 'err');
+  }
 }
-function tlRemove(tag) {
+async function tlRemove(tag) {
   if (!confirm('Remove tag "' + tag + '" from the library?')) return;
-  tlTags = tlTags.filter(t => t !== tag);
-  tlSave();
-  tlRender();
-  toast('Tag removed.', 'ok');
+  try {
+    await tlDeleteTag(tag);
+    tlTags = tlTags.filter(t => t !== tag);
+    tlRender();
+    toast('Tag removed.', 'ok');
+  } catch(e) {
+    toast('Error removing tag: ' + e.message, 'err');
+  }
 }
 async function tagSave(sel) {
   const wt = sel.getAttribute('data-wt');
@@ -1675,8 +1706,11 @@ async function renderRecords() {
   document.getElementById('rec-tbody').innerHTML = '<tr><td colspan="13" style="padding:3rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:12px">Loading…</td></tr>';
   showLoader('Loading records…');
   try {
-    const [raw, spMap] = await Promise.all([sbFetchAll(), spFetchAll()]);
+    const [raw, spMap, tgMap, libTags] = await Promise.all([sbFetchAll(), spFetchAll(), tagFetchAll(), tlFetchLibrary()]);
     spCache = spMap;
+    tagCache = tgMap;
+    tlTags = libTags;
+    tlRender();
     hideLoader();
     recRows = raw.map(r => ({
       date: r.journal_date ? (r.journal_date.slice(5,7)+'/'+r.journal_date.slice(8,10)+'/'+r.journal_date.slice(0,4)) : '—',
@@ -2472,7 +2506,7 @@ function ttUpdateNavBadge() {
  
 // Load badge on startup
 scLoadCodes().catch(function(){});
-tlRender();
+tlFetchLibrary().then(function(tags){ tlTags=tags; tlRender(); }).catch(function(){});
 ttFetchAll().then(function(data){ ttData=data; ttUpdateNavBadge(); }).catch(function(){});
 </script>
  
