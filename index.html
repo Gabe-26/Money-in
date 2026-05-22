@@ -325,6 +325,17 @@ tbody td{padding:8px 12px;vertical-align:middle}
 .sc-search::placeholder{color:var(--t3)}
 .sc-count{font-size:10px;font-family:var(--mono);color:var(--t3);margin-bottom:8px}
  
+/* ── TAG LIBRARY PILLS ── */
+.tl-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);color:var(--t2)}
+.tl-tag-del{background:none;border:none;color:var(--t3);cursor:pointer;font-size:11px;line-height:1;padding:0;opacity:.5}
+.tl-tag-del:hover{opacity:1;color:var(--rd-t)}
+ 
+/* ── TAG SELECT IN TABLE ── */
+.tag-select{appearance:none;-webkit-appearance:none;background:transparent;border:none;color:var(--t3);font-size:11px;font-family:var(--mono);cursor:pointer;padding:0;width:100%;outline:none}
+.tag-select:hover{color:var(--t2)}
+.tag-select.tagged{color:var(--gr2);font-style:italic}
+.tag-select option{background:var(--s2);color:var(--t1)}
+ 
 /* ── SALES PRICE / MARGIN ── */
 .sale-input{width:90px;padding:3px 6px;border:1px solid var(--b2);border-radius:4px;background:var(--s2);color:var(--t1);font-size:11px;font-family:var(--mono);text-align:right}
 .sale-input:focus{outline:none;border-color:var(--gr)}
@@ -1651,7 +1662,7 @@ function tlRender() {
   if (!tlTags.length) {
     list.innerHTML = '<span style="font-size:11px;font-family:var(--mono);color:var(--t3)">No tags yet. Add one above.</span>';
   } else {
-    list.innerHTML = tlTags.map(function(t){ return '<span class="tl-tag">' + t + '<button class="tl-tag-del" onclick="tlRemove(' + JSON.stringify(t) + ')" title="Remove tag">×</button></span>'; }).join('');
+    list.innerHTML = tlTags.map(function(t){ return '<span class="tl-tag">' + t + '<button class="tl-tag-del" onclick="tlRemove(' + JSON.stringify(t) + ')" title="Remove">×</button></span>'; }).join('<span style="color:var(--b2);padding:0 2px">·</span>');
   }
 }
 async function tlAdd() {
@@ -1797,7 +1808,7 @@ function recDraw() {
     const tagOpts = tlTags.map(t => `<option value="${t}"${curTag===t?' selected':''}>${t}</option>`).join('');
     const descCell = hasDesc
       ? `<td class="cdesc" title="${r.desc}">${r.desc}</td>`
-      : `<td style="padding:6px 12px"><select class="tag-select${curTag?' tagged':''}" data-wt="${r.wt}" onchange="tagSave(this)"><option value="">— tag —</option>${tagOpts}</select></td>`;
+      : `<td style="padding:6px 12px;max-width:160px"><select class="tag-select${curTag?' tagged':''}" data-wt="${r.wt}" onchange="tagSave(this)"><option value="">${curTag ? '' : '+ tag'}</option>${tagOpts}</select></td>`;
     return `<tr style="border-bottom:1px solid var(--b1)">
     <td class="cdate">${r.date}</td>
     <td style="font-family:var(--mono);font-size:11px;color:var(--t3)">${r.batch}</td>
