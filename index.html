@@ -325,6 +325,14 @@ tbody td{padding:8px 12px;vertical-align:middle}
 .sc-search::placeholder{color:var(--t3)}
 .sc-count{font-size:10px;font-family:var(--mono);color:var(--t3);margin-bottom:8px}
  
+/* ── STOCK/CUSTOM TOGGLE ── */
+.sc-toggle{display:inline-flex;gap:8px;margin-bottom:16px}
+.sc-toggle-btn{padding:7px 20px;font-size:11px;font-family:var(--mono);font-weight:600;letter-spacing:.07em;text-transform:uppercase;border:1px solid var(--b2);border-radius:6px;background:var(--s1);color:var(--t3);cursor:pointer;transition:all .18s}
+.sc-toggle-btn:hover{color:var(--t1);background:var(--s2)}
+#sct-all.active{border-color:var(--gr);background:rgba(232,124,46,.12);color:var(--gr2);box-shadow:0 0 14px rgba(232,124,46,.12)}
+#sct-stock.active{border-color:var(--bl);background:rgba(45,125,210,.12);color:var(--bl-t);box-shadow:0 0 14px rgba(45,125,210,.12)}
+#sct-custom.active{border-color:var(--gate);background:rgba(233,30,140,.12);color:var(--gate-t);box-shadow:0 0 14px rgba(233,30,140,.12)}
+ 
 /* ── TAG LIBRARY PILLS ── */
 .tl-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);color:var(--t2)}
 .tl-tag-del{background:none;border:none;color:var(--t3);cursor:pointer;font-size:11px;line-height:1;padding:0;opacity:.5}
@@ -529,9 +537,9 @@ tbody td{padding:8px 12px;vertical-align:middle}
       <button class="clrbtn" onclick="clearAll()">Clear all data</button>
     </div>
     <div class="sc-toggle">
-      <button class="sc-toggle-btn active custom" id="sct-all" onclick="smSetView('all')">All Jobs</button>
-      <button class="sc-toggle-btn stock" id="sct-stock" onclick="smSetView('stock')">Stock Only</button>
-      <button class="sc-toggle-btn custom" id="sct-custom" onclick="smSetView('custom')">Custom Only</button>
+      <button class="sc-toggle-btn active" id="sct-all" onclick="smSetView('all')">⬡ All Jobs</button>
+      <button class="sc-toggle-btn" id="sct-stock" onclick="smSetView('stock')">▦ Stock Only</button>
+      <button class="sc-toggle-btn" id="sct-custom" onclick="smSetView('custom')">✦ Custom Only</button>
     </div>
     <div class="kpis" style="grid-template-columns:repeat(5,1fr)">
       <div class="kpi"><div class="kpi-l">Total Entries</div><div class="kpi-v" id="kv1">—</div><div class="kpi-s" id="ks1">—</div></div>
@@ -1883,11 +1891,9 @@ function isStockCode(code) {
 function smSetView(view) {
   smView = view;
   ['all','stock','custom'].forEach(function(v) {
-    var btn = document.getElementById('sct-' + v);
-    btn.classList.remove('active');
+    document.getElementById('sct-' + v).classList.remove('active');
   });
-  var active = document.getElementById('sct-' + view);
-  active.classList.add('active');
+  document.getElementById('sct-' + view).classList.add('active');
   // Re-filter and re-render
   var base = activeMonth ? allDbEntries.filter(function(r){ return mkey(r.date) === activeMonth; }) : allDbEntries;
   var filtered = smFilterView(base);
