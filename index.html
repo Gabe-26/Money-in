@@ -528,6 +528,11 @@ tbody td{padding:8px 12px;vertical-align:middle}
       <div><h2 id="db-title">Set Month Overview</h2><p id="dbsub">—</p></div>
       <button class="clrbtn" onclick="clearAll()">Clear all data</button>
     </div>
+    <div class="sc-toggle">
+      <button class="sc-toggle-btn active custom" id="sct-all" onclick="smSetView('all')">All Jobs</button>
+      <button class="sc-toggle-btn stock" id="sct-stock" onclick="smSetView('stock')">Stock Only</button>
+      <button class="sc-toggle-btn custom" id="sct-custom" onclick="smSetView('custom')">Custom Only</button>
+    </div>
     <div class="kpis" style="grid-template-columns:repeat(5,1fr)">
       <div class="kpi"><div class="kpi-l">Total Entries</div><div class="kpi-v" id="kv1">—</div><div class="kpi-s" id="ks1">—</div></div>
       <div class="kpi"><div class="kpi-l">Total Cost</div><div class="kpi-v g" id="kv2">—</div><div class="kpi-s" id="ks2">All time</div></div>
@@ -716,7 +721,7 @@ function goTo(name) {
   });
   if (name === 'db')      renderDB();
   if (name === 'records') renderRecords();
-  if (name === 'tracker') ttRender();
+  if (name === 'tracker') { ttRender(); if (scCodes.length && !sptData.length) sptLoad(); }
 }
  
 // ── DROP ZONE ─────────────────────────────────────────────────────────────────
@@ -1868,6 +1873,124 @@ function showTopTable(which) {
   document.getElementById('tbtn-rev').className = 'btn' + (which === 'rev' ? ' mt' : '');
 }
  
+// ── STOCK / CUSTOM VIEW TOGGLE ────────────────────────────────────────────────
+let smView = 'all'; // 'all' | 'stock' | 'custom'
+ 
+function isStockCode(code) {
+  return scCodes.some(function(c) { return c.item_code === code; });
+}
+ 
+function smSetView(view) {
+  smView = view;
+  ['all','stock','custom'].forEach(function(v) {
+    var btn = document.getElementById('sct-' + v);
+    btn.classList.remove('active');
+  });
+  var active = document.getElementById('sct-' + view);
+  active.classList.add('active');
+  // Re-filter and re-render
+  var base = activeMonth ? allDbEntries.filter(function(r){ return mkey(r.date) === activeMonth; }) : allDbEntries;
+  var filtered = smFilterView(base);
+  updateKPIs(filtered);
+  buildCh1(filtered); buildCh2(filtered); buildCh3(filtered); buildTables(filtered); fillSel(filtered);
+}
+ 
+function smFilterView(entries) {
+  if (smView === 'all') return entries;
+  if (smView === 'stock') return entries.filter(function(r){ return isStockCode(r.code); });
+  if (smView === 'custom') return entries.filter(function(r){ return !isStockCode(r.code); });
+  return entries;
+}
+ 
+// ── STOCK PERFORMANCE (Traveler Tracker) ─────────────────────────────────────
+var sptData = [];   // aggregated per stock code
+var sptDept = 'all';
+var sptSpCache = {}; // sale prices keyed by item code (we'll use traveler avg)
+ 
+async function sptLoad() {
+  try {
+    // Fetch all records and sale prices
+    const [rows, spMap] = await Promise.all([sbFetchAll(), spFetchAll()]);
+    sptSpCache = spMap;
+    // Only stock codes
+    var byCode = {};
+    rows.forEach(function(r) {
+      var code = r.item_code;
+      if (!isStockCode(code)) return;
+      if (!byCode[code]) {
+        var sc = scCodes.find(function(c){ return c.item_code === code; });
+        byCode[code] = {
+          code: code,
+          desc: (sc && sc.description) ? sc.description : (r.description || ''),
+          dept: (r.department || '').toLowerCase(),
+          runs: 0, qty: 0, cost: 0, salePrices: []
+        };
+      }
+      byCode[code].runs++;
+      byCode[code].qty += parseFloat(r.qty) || 0;
+      byCode[code].cost += parseFloat(r.extended_cost) || 0;
+      // collect sale price for this traveler if exists
+      var sp = spMap[r.traveler_number];
+      if (sp) byCode[code].salePrices.push(sp);
+    });
+    sptData = Object.values(byCode).sort(function(a,b){ return b.cost - a.cost; });
+    document.getElementById('spt-loading').style.display = 'none';
+    document.getElementById('spt-table').style.display = '';
+    document.getElementById('spt-sub').textContent = 'All-time · ' + sptData.length + ' stock codes';
+    sptDraw();
+  } catch(e) {
+    document.getElementById('spt-loading').textContent = 'Error loading: ' + e.message;
+  }
+}
+ 
+function sptSetDept(dept) {
+  sptDept = dept;
+  ['all','wood','metal','gate','other'].forEach(function(d) {
+    var btn = document.getElementById('sptf-' + d);
+    btn.classList.remove('on');
+    btn.style.removeProperty('border-color');
+    btn.style.removeProperty('background');
+    btn.style.removeProperty('color');
+  });
+  var btn = document.getElementById('sptf-' + dept);
+  btn.classList.add('on');
+  sptDraw();
+}
+ 
+function sptDraw() {
+  var q = (document.getElementById('spt-search').value || '').toLowerCase().trim();
+  var rows = sptData.filter(function(r) {
+    if (sptDept !== 'all' && r.dept !== sptDept) return false;
+    if (q && !r.code.toLowerCase().includes(q) && !r.desc.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  var tbody = document.getElementById('spt-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="spt-empty">No stock codes match</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(function(r) {
+    var avgSp = r.salePrices.length ? r.salePrices.reduce(function(a,b){return a+b;},0) / r.salePrices.length : 0;
+    var avgCostPerRun = r.runs ? r.cost / r.runs : 0;
+    var margin = avgSp > 0 ? avgSp - avgCostPerRun : null;
+    var marginPct = margin !== null && avgCostPerRun > 0 ? (margin / avgCostPerRun * 100) : null;
+    var deptClass = r.dept === 'wood' ? 'wood' : r.dept === 'metal' ? 'metal' : r.dept === 'gate' ? 'gate' : 'other';
+    var mClass = margin > 0 ? 'spt-margin-pos' : margin < 0 ? 'spt-margin-neg' : '';
+    return '<tr>' +
+      '<td class="spt-code">' + r.code + '</td>' +
+      '<td class="spt-desc" title="' + r.desc + '">' + (r.desc || '—') + '</td>' +
+      '<td><span class="spt-dept ' + deptClass + '">' + deptClass + '</span></td>' +
+      '<td class="r">' + r.runs.toLocaleString() + '</td>' +
+      '<td class="r">' + r.qty.toFixed(1) + '</td>' +
+      '<td class="r spt-cost">$' + fmt2(r.cost) + '</td>' +
+      '<td class="r">$' + fmt2(avgCostPerRun) + '</td>' +
+      '<td class="r">' + (avgSp > 0 ? '$' + fmt2(avgSp) : '—') + '</td>' +
+      '<td class="r ' + mClass + '">' + (margin !== null ? '$' + fmt2(margin) : '—') + '</td>' +
+      '<td class="r ' + mClass + '">' + (marginPct !== null ? marginPct.toFixed(1) + '%' : '—') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+ 
 // ── SIDEBAR ───────────────────────────────────────────────────────────────────
 let sidebarOpen = false;
 let activeMonth = null; // null = all, 'YYYY-MM' = filtered
@@ -1890,7 +2013,8 @@ function selectMonth(key) {
     el.classList.toggle('active', el.dataset.key === key);
   });
   // Re-render with filtered data
-  const filtered = key ? allDbEntries.filter(r => mkey(r.date) === key) : allDbEntries;
+  const base = key ? allDbEntries.filter(r => mkey(r.date) === key) : allDbEntries;
+  const filtered = smFilterView(base);
   const lbl = key ? mlbl(key) : null;
   if (lbl) {
     document.getElementById('db-title').textContent = lbl + ' Overview';
@@ -1986,6 +2110,34 @@ updateBadge();
       <button class="btn" onclick="scOpenModal()">&#9776; Stock Codes</button>
       <button class="btn save" onclick="ttShowForm()">+ Add Traveler</button>
     </div>
+  </div>
+ 
+  <!-- STOCK CODE PERFORMANCE PANEL -->
+  <div class="excard spt-wrap" id="spt-panel">
+    <div class="spt-head">
+      <div>
+        <div class="spt-title">Stock Code Performance</div>
+        <div class="spt-sub" id="spt-sub">All-time breakdown by stock code</div>
+      </div>
+      <input class="spt-search" id="spt-search" placeholder="Search code or description…" oninput="sptDraw()"/>
+    </div>
+    <div class="spt-filters">
+      <button class="spt-filter-btn on" id="sptf-all" onclick="sptSetDept('all')">All</button>
+      <button class="spt-filter-btn wood" id="sptf-wood" onclick="sptSetDept('wood')">Wood</button>
+      <button class="spt-filter-btn on metal" id="sptf-metal" onclick="sptSetDept('metal')" style="border-color:var(--b2);background:transparent;color:var(--t3)">Metal</button>
+      <button class="spt-filter-btn gate" id="sptf-gate" onclick="sptSetDept('gate')" style="border-color:var(--b2);background:transparent;color:var(--t3)">Gate</button>
+      <button class="spt-filter-btn" id="sptf-other" onclick="sptSetDept('other')">Other</button>
+    </div>
+    <div id="spt-loading" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">Loading…</div>
+    <table class="spt-table" id="spt-table" style="display:none">
+      <thead><tr>
+        <th>Code</th><th>Description</th><th>Dept</th>
+        <th class="r">Times Run</th><th class="r">Total Qty</th>
+        <th class="r">Total Cost</th><th class="r">Avg Cost/Run</th>
+        <th class="r">Sale Price</th><th class="r">Margin $</th><th class="r">Margin %</th>
+      </tr></thead>
+      <tbody id="spt-tbody"></tbody>
+    </table>
   </div>
   <div class="tt-form-card" id="tt-form" style="display:none">
     <div class="tt-form-title" id="tt-form-title">Add Open Traveler</div>
