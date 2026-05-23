@@ -333,27 +333,44 @@ tbody td{padding:8px 12px;vertical-align:middle}
 #sct-stock.active{border-color:var(--bl);background:rgba(45,125,210,.12);color:var(--bl-t);box-shadow:0 0 14px rgba(45,125,210,.12)}
 #sct-custom.active{border-color:var(--gate);background:rgba(233,30,140,.12);color:var(--gate-t);box-shadow:0 0 14px rgba(233,30,140,.12)}
  
+/* ── TRACKER TWO-COLUMN LAYOUT ── */
+.tt-cols{display:grid;grid-template-columns:1fr 420px;gap:20px;align-items:start}
+.tt-col-left{}
+.tt-col-right{position:sticky;top:64px}
+.tt-stock-panel{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden}
+.tt-stock-panel-head{padding:14px 16px;border-bottom:1px solid var(--b1)}
+.tt-stock-panel-title{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:2px}
+.tt-stock-panel-sub{font-size:11px;font-family:var(--mono);color:var(--t3)}
+.tt-stock-dept-tabs{display:flex;border-bottom:1px solid var(--b1)}
+.tt-stock-dept-tab{flex:1;padding:8px 4px;border:none;background:transparent;color:var(--t3);font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;text-transform:uppercase;letter-spacing:.05em}
+.tt-stock-dept-tab:hover{color:var(--t1);background:var(--s2)}
+.tt-stock-dept-tab.on.wood{color:var(--am-t);border-bottom-color:var(--am);background:rgba(39,174,96,.05)}
+.tt-stock-dept-tab.on.metal{color:var(--bl-t);border-bottom-color:var(--bl);background:rgba(45,125,210,.05)}
+.tt-stock-dept-tab.on.gate{color:var(--gate-t);border-bottom-color:var(--gate);background:rgba(233,30,140,.05)}
+.tt-stock-dept-tab.on.all{color:var(--gr2);border-bottom-color:var(--gr);background:rgba(232,124,46,.05)}
+.tt-stock-body{max-height:calc(100vh - 280px);overflow-y:auto}
+@media(max-width:900px){.tt-cols{grid-template-columns:1fr}.tt-col-right{position:static}}
+ 
 /* ── STOCK BATCH COMPLETED CARDS ── */
 .sbc-group{border:1px solid var(--b1);border-radius:8px;margin-bottom:8px;overflow:hidden;background:var(--s1)}
-.sbc-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none;transition:background .15s}
+.sbc-header{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none;transition:background .15s}
 .sbc-header:hover{background:var(--s2)}
 .sbc-arrow{font-size:10px;color:var(--t3);margin-left:auto;transition:transform .2s;flex-shrink:0}
 .sbc-group.open .sbc-arrow{transform:rotate(180deg)}
 .sbc-code{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--t1)}
-.sbc-desc{font-family:var(--mono);font-size:11px;color:var(--t3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sbc-desc{font-family:var(--mono);font-size:10px;color:var(--t3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sbc-count{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:4px;background:var(--s2);border:1px solid var(--b1);color:var(--t3);white-space:nowrap}
 .sbc-total{font-family:var(--mono);font-size:11px;color:var(--gr2);font-weight:600;white-space:nowrap}
 .sbc-body{display:none;border-top:1px solid var(--b1)}
 .sbc-group.open .sbc-body{display:block}
-.sbc-run{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.03);font-family:var(--mono);font-size:11px}
+.sbc-run{display:flex;align-items:center;gap:6px;padding:6px 12px;border-bottom:1px solid rgba(255,255,255,.03);font-family:var(--mono);font-size:10px}
 .sbc-run:last-child{border-bottom:none}
 .sbc-run:hover{background:var(--s2)}
-.sbc-run-wt{color:var(--t3);width:80px;flex-shrink:0}
-.sbc-run-batch{color:var(--t2);width:70px;flex-shrink:0}
-.sbc-run-date{color:var(--t3);width:90px;flex-shrink:0}
-.sbc-run-so{color:var(--t2);flex:1}
-.sbc-run-qty{color:var(--t1);font-weight:600;text-align:right;width:70px;flex-shrink:0}
-.sbc-run-cost{color:var(--gr2);text-align:right;width:90px;flex-shrink:0}
+.sbc-run-wt{color:var(--t3);width:68px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis}
+.sbc-run-batch{color:var(--t2);width:62px;flex-shrink:0}
+.sbc-run-date{color:var(--t3);width:80px;flex-shrink:0}
+.sbc-run-qty{color:var(--t1);font-weight:600;text-align:right;flex:1}
+.sbc-run-cost{color:var(--gr2);text-align:right;width:76px;flex-shrink:0}
 .sbc-section-label{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;padding:6px 14px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--b1)}
  
 /* ── STOCK PERF TABLE ── */
@@ -2206,10 +2223,35 @@ updateBadge();
     <div class="kpi"><div class="kpi-l">Pending Qty</div><div class="kpi-v g" id="tt-kv3">0</div><div class="kpi-s">units still in production</div></div>
     <div class="kpi"><div class="kpi-l">Last Matched</div><div class="kpi-v" id="tt-kv4" style="font-size:14px">--</div><div class="kpi-s" id="tt-ks4">no batch matched yet</div></div>
   </div>
-  <div class="tt-section"><span style="color:#f0a040">&#9679;</span> Pending<span class="tt-section-count" id="tt-pending-count">0</span><div class="tt-section-line"></div></div>
-  <div class="tt-list" id="tt-pending-list"><div class="tt-empty">No open travelers yet. Click <b>+ Add Traveler</b> to log one.</div></div>
-  <div class="tt-section"><span style="color:#4cd68a">&#9679;</span> Completed<span class="tt-section-count" id="tt-completed-count">0</span><div class="tt-section-line"></div></div>
-  <div class="tt-list" id="tt-completed-list"><div class="tt-empty">No completed travelers yet.</div></div>
+ 
+  <div class="tt-cols">
+    <!-- LEFT: Travelers -->
+    <div class="tt-col-left">
+      <div class="tt-section"><span style="color:#f0a040">&#9679;</span> Pending<span class="tt-section-count" id="tt-pending-count">0</span><div class="tt-section-line"></div></div>
+      <div class="tt-list" id="tt-pending-list"><div class="tt-empty">No open travelers yet. Click <b>+ Add Traveler</b> to log one.</div></div>
+      <div class="tt-section"><span style="color:#4cd68a">&#9679;</span> Completed<span class="tt-section-count" id="tt-completed-count">0</span><div class="tt-section-line"></div></div>
+      <div class="tt-list" id="tt-completed-list"><div class="tt-empty">No completed travelers yet.</div></div>
+    </div>
+ 
+    <!-- RIGHT: Stock batch runs panel -->
+    <div class="tt-col-right">
+      <div class="tt-stock-panel">
+        <div class="tt-stock-panel-head">
+          <div class="tt-stock-panel-title">Stock Batch Runs</div>
+          <div class="tt-stock-panel-sub" id="sbc-panel-sub">Loading…</div>
+        </div>
+        <div class="tt-stock-dept-tabs">
+          <button class="tt-stock-dept-tab on all" id="sbct-all"  onclick="sbcSetDept('all')">All</button>
+          <button class="tt-stock-dept-tab wood"   id="sbct-wood" onclick="sbcSetDept('wood')">🌲 Wood</button>
+          <button class="tt-stock-dept-tab metal"  id="sbct-metal" onclick="sbcSetDept('metal')">⚙ Metal</button>
+          <button class="tt-stock-dept-tab gate"   id="sbct-gate" onclick="sbcSetDept('gate')">🚪 Gate</button>
+        </div>
+        <div class="tt-stock-body" id="sbc-list">
+          <div style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </div>
  
   <!-- STOCK CODE PERFORMANCE PANEL -->
   <div class="excard spt-wrap" id="spt-panel">
@@ -2579,13 +2621,32 @@ function ttDraw() {
   ttDrawStockCompleted();
 }
  
+var sbcDept = 'all';
+ 
+function sbcSetDept(dept) {
+  sbcDept = dept;
+  ['all','wood','metal','gate'].forEach(function(d) {
+    var btn = document.getElementById('sbct-' + d);
+    btn.classList.remove('on','all','wood','metal','gate');
+    btn.classList.add(d);
+  });
+  document.getElementById('sbct-' + dept).classList.add('on');
+  ttDrawStockCompleted();
+}
+ 
 function ttDrawStockCompleted() {
-  var cl = document.getElementById('tt-completed-list');
-  if (!ttBatchRuns.length) return;
+  var panel = document.getElementById('sbc-list');
+  if (!ttBatchRuns.length) {
+    panel.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">No stock batch data yet.</div>';
+    return;
+  }
+ 
+  // Filter by dept
+  var runs = sbcDept === 'all' ? ttBatchRuns : ttBatchRuns.filter(function(r){ return (r.department||'').toLowerCase() === sbcDept; });
  
   // Group by item_code
   var byCode = {};
-  ttBatchRuns.forEach(function(r) {
+  runs.forEach(function(r) {
     var code = r.item_code;
     if (!byCode[code]) {
       var sc = scCodes.find(function(c){ return c.item_code === code; });
@@ -2593,9 +2654,7 @@ function ttDrawStockCompleted() {
         code: code,
         desc: (sc && sc.description) ? sc.description : (r.description || ''),
         dept: (r.department || '').toLowerCase(),
-        runs: [],
-        totalQty: 0,
-        totalCost: 0
+        runs: [], totalQty: 0, totalCost: 0
       };
     }
     byCode[code].runs.push(r);
@@ -2603,29 +2662,31 @@ function ttDrawStockCompleted() {
     byCode[code].totalCost += parseFloat(r.extended_cost) || 0;
   });
  
-  // Sort by total cost desc
   var groups = Object.values(byCode).sort(function(a,b){ return b.totalCost - a.totalCost; });
   var total = groups.reduce(function(s,g){ return s + g.totalCost; }, 0);
  
-  // Section divider
-  var divider = '<div class="sbc-section-label">Stock Code Batch Runs — ' + ttBatchRuns.length.toLocaleString() + ' entries · ' + groups.length + ' codes · $' + fmt2(total) + ' total</div>';
+  document.getElementById('sbc-panel-sub').textContent =
+    runs.length.toLocaleString() + ' entries · ' + groups.length + ' codes · $' + fmt2(total);
  
-  var html = divider + groups.map(function(g, gi) {
+  if (!groups.length) {
+    panel.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">No entries for this department.</div>';
+    return;
+  }
+ 
+  panel.innerHTML = groups.map(function(g, gi) {
     var deptHtml = deptPill(g.dept);
     var runsHtml = g.runs
       .slice().sort(function(a,b){ return (b.journal_date||'').localeCompare(a.journal_date||''); })
       .map(function(r) {
         var date = r.journal_date ? r.journal_date.slice(0,10) : '—';
-        var so = r.so_number || '—';
         var wt = r.traveler_number || '—';
         var qty = parseFloat(r.qty||0).toLocaleString();
         var cost = '$' + fmt2(parseFloat(r.extended_cost)||0);
         return '<div class="sbc-run">'
           + '<span class="sbc-run-wt">#' + wt + '</span>'
-          + '<span class="sbc-run-batch">Batch ' + (r.batch||'—') + '</span>'
+          + '<span class="sbc-run-batch">B' + (r.batch||'—') + '</span>'
           + '<span class="sbc-run-date">' + date + '</span>'
-          + '<span class="sbc-run-so">S/O ' + so + '</span>'
-          + '<span class="sbc-run-qty">' + qty + ' units</span>'
+          + '<span class="sbc-run-qty">' + qty + ' u</span>'
           + '<span class="sbc-run-cost">' + cost + '</span>'
           + '</div>';
       }).join('');
@@ -2635,20 +2696,18 @@ function ttDrawStockCompleted() {
       + '<span class="sbc-code">' + g.code + '</span>'
       + deptHtml
       + '<span class="sbc-desc">' + g.desc + '</span>'
-      + '<span class="sbc-count">' + g.runs.length + ' run' + (g.runs.length !== 1 ? 's' : '') + '</span>'
+      + '<span class="sbc-count">' + g.runs.length + 'x</span>'
       + '<span class="sbc-total">$' + fmt2(g.totalCost) + '</span>'
       + '<span class="sbc-arrow">▼</span>'
       + '</div>'
       + '<div class="sbc-body">' + runsHtml + '</div>'
       + '</div>';
   }).join('');
- 
-  cl.innerHTML += html;
 }
  
 function sbcToggle(gi) {
   var el = document.getElementById('sbc-' + gi);
-  el.classList.toggle('open');
+  if (el) el.classList.toggle('open');
 }
  
 function ttCardHtml(r) {
