@@ -333,6 +333,40 @@ tbody td{padding:8px 12px;vertical-align:middle}
 #sct-stock.active{border-color:var(--bl);background:rgba(45,125,210,.12);color:var(--bl-t);box-shadow:0 0 14px rgba(45,125,210,.12)}
 #sct-custom.active{border-color:var(--gate);background:rgba(233,30,140,.12);color:var(--gate-t);box-shadow:0 0 14px rgba(233,30,140,.12)}
  
+/* ── STOCK PERF TABLE ── */
+.spt-wrap{margin-top:2rem}
+.spt-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.spt-title{font-size:15px;font-weight:600;color:var(--t1);margin-bottom:2px}
+.spt-sub{font-size:11px;font-family:var(--mono);color:var(--t3)}
+.spt-search{padding:7px 12px;border:1px solid var(--b2);border-radius:6px;background:var(--s2);color:var(--t1);font-size:11px;font-family:var(--mono);width:220px;transition:border-color .15s}
+.spt-search:focus{outline:none;border-color:var(--gr);background:var(--s3)}
+.spt-search::placeholder{color:var(--t3)}
+.spt-filters{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.spt-filter-btn{padding:6px 18px;border-radius:6px;border:1px solid var(--b2);background:var(--s1);color:var(--t3);font-size:11px;font-family:var(--mono);font-weight:600;letter-spacing:.05em;cursor:pointer;transition:all .15s}
+.spt-filter-btn:hover{color:var(--t1);background:var(--s2)}
+#sptf-all.on{border-color:var(--gr);background:rgba(232,124,46,.1);color:var(--gr2)}
+#sptf-wood.on{border-color:var(--am);background:rgba(39,174,96,.1);color:var(--am-t)}
+#sptf-metal.on{border-color:var(--bl);background:rgba(45,125,210,.1);color:var(--bl-t)}
+#sptf-gate.on{border-color:var(--gate);background:rgba(233,30,140,.1);color:var(--gate-t)}
+#sptf-other.on{border-color:var(--b2);background:var(--s2);color:var(--t2)}
+.spt-table{width:100%;border-collapse:collapse}
+.spt-table th{text-align:left;font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.07em;padding:8px 12px;border-bottom:1px solid var(--b1);white-space:nowrap}
+.spt-table th.r{text-align:right}
+.spt-table td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.035);font-size:11px;font-family:var(--mono);color:var(--t2)}
+.spt-table td.r{text-align:right}
+.spt-table tbody tr:hover td{background:var(--s2);color:var(--t1)}
+.spt-code{font-weight:600;color:var(--t1);letter-spacing:.02em}
+.spt-desc{color:var(--t3);font-size:10px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spt-dept{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.spt-dept.wood{background:rgba(39,174,96,.1);color:var(--am-t);border:1px solid rgba(39,174,96,.2)}
+.spt-dept.metal{background:rgba(45,125,210,.1);color:var(--bl-t);border:1px solid rgba(45,125,210,.2)}
+.spt-dept.gate{background:rgba(233,30,140,.1);color:var(--gate-t);border:1px solid rgba(233,30,140,.2)}
+.spt-dept.other{background:var(--s2);color:var(--t3);border:1px solid var(--b1)}
+.spt-cost{color:var(--gr2);font-weight:600}
+.spt-margin-pos{color:#4cd68a;font-weight:600}
+.spt-margin-neg{color:var(--rd-t);font-weight:600}
+.spt-empty{padding:3rem;text-align:center;color:var(--t3);font-size:11px;font-family:var(--mono)}
+ 
 /* ── TAG LIBRARY PILLS ── */
 .tl-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);color:var(--t2)}
 .tl-tag-del{background:none;border:none;color:var(--t3);cursor:pointer;font-size:11px;line-height:1;padding:0;opacity:.5}
@@ -1952,14 +1986,9 @@ async function sptLoad() {
 function sptSetDept(dept) {
   sptDept = dept;
   ['all','wood','metal','gate','other'].forEach(function(d) {
-    var btn = document.getElementById('sptf-' + d);
-    btn.classList.remove('on');
-    btn.style.removeProperty('border-color');
-    btn.style.removeProperty('background');
-    btn.style.removeProperty('color');
+    document.getElementById('sptf-' + d).classList.remove('on');
   });
-  var btn = document.getElementById('sptf-' + dept);
-  btn.classList.add('on');
+  document.getElementById('sptf-' + dept).classList.add('on');
   sptDraw();
 }
  
@@ -2118,33 +2147,7 @@ updateBadge();
     </div>
   </div>
  
-  <!-- STOCK CODE PERFORMANCE PANEL -->
-  <div class="excard spt-wrap" id="spt-panel">
-    <div class="spt-head">
-      <div>
-        <div class="spt-title">Stock Code Performance</div>
-        <div class="spt-sub" id="spt-sub">All-time breakdown by stock code</div>
-      </div>
-      <input class="spt-search" id="spt-search" placeholder="Search code or description…" oninput="sptDraw()"/>
-    </div>
-    <div class="spt-filters">
-      <button class="spt-filter-btn on" id="sptf-all" onclick="sptSetDept('all')">All</button>
-      <button class="spt-filter-btn wood" id="sptf-wood" onclick="sptSetDept('wood')">Wood</button>
-      <button class="spt-filter-btn on metal" id="sptf-metal" onclick="sptSetDept('metal')" style="border-color:var(--b2);background:transparent;color:var(--t3)">Metal</button>
-      <button class="spt-filter-btn gate" id="sptf-gate" onclick="sptSetDept('gate')" style="border-color:var(--b2);background:transparent;color:var(--t3)">Gate</button>
-      <button class="spt-filter-btn" id="sptf-other" onclick="sptSetDept('other')">Other</button>
-    </div>
-    <div id="spt-loading" style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">Loading…</div>
-    <table class="spt-table" id="spt-table" style="display:none">
-      <thead><tr>
-        <th>Code</th><th>Description</th><th>Dept</th>
-        <th class="r">Times Run</th><th class="r">Total Qty</th>
-        <th class="r">Total Cost</th><th class="r">Avg Cost/Run</th>
-        <th class="r">Sale Price</th><th class="r">Margin $</th><th class="r">Margin %</th>
-      </tr></thead>
-      <tbody id="spt-tbody"></tbody>
-    </table>
-  </div>
+ 
   <div class="tt-form-card" id="tt-form" style="display:none">
     <div class="tt-form-title" id="tt-form-title">Add Open Traveler</div>
     <div class="tt-form-grid">
@@ -2184,6 +2187,34 @@ updateBadge();
   <div class="tt-list" id="tt-pending-list"><div class="tt-empty">No open travelers yet. Click <b>+ Add Traveler</b> to log one.</div></div>
   <div class="tt-section"><span style="color:#4cd68a">&#9679;</span> Completed<span class="tt-section-count" id="tt-completed-count">0</span><div class="tt-section-line"></div></div>
   <div class="tt-list" id="tt-completed-list"><div class="tt-empty">No completed travelers yet.</div></div>
+ 
+  <!-- STOCK CODE PERFORMANCE PANEL -->
+  <div class="excard spt-wrap" id="spt-panel">
+    <div class="spt-head">
+      <div>
+        <div class="spt-title">📊 Stock Code Performance</div>
+        <div class="spt-sub" id="spt-sub">All-time breakdown by stock code</div>
+      </div>
+      <input class="spt-search" id="spt-search" placeholder="Search code or description…" oninput="sptDraw()"/>
+    </div>
+    <div class="spt-filters">
+      <button class="spt-filter-btn on" id="sptf-all" onclick="sptSetDept('all')">All Depts</button>
+      <button class="spt-filter-btn" id="sptf-wood" onclick="sptSetDept('wood')">🌲 Wood</button>
+      <button class="spt-filter-btn" id="sptf-metal" onclick="sptSetDept('metal')">⚙ Metal</button>
+      <button class="spt-filter-btn" id="sptf-gate" onclick="sptSetDept('gate')">🚪 Gate</button>
+      <button class="spt-filter-btn" id="sptf-other" onclick="sptSetDept('other')">· Other</button>
+    </div>
+    <div id="spt-loading" style="padding:3rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">Loading stock code data…</div>
+    <table class="spt-table" id="spt-table" style="display:none">
+      <thead><tr>
+        <th>Code</th><th>Description</th><th>Dept</th>
+        <th class="r">Times Run</th><th class="r">Total Qty</th>
+        <th class="r">Total Cost</th><th class="r">Avg Cost/Run</th>
+        <th class="r">Avg Sale Price</th><th class="r">Margin $</th><th class="r">Margin %</th>
+      </tr></thead>
+      <tbody id="spt-tbody"></tbody>
+    </table>
+  </div>
 </div>
 </div>
  
