@@ -333,6 +333,29 @@ tbody td{padding:8px 12px;vertical-align:middle}
 #sct-stock.active{border-color:var(--bl);background:rgba(45,125,210,.12);color:var(--bl-t);box-shadow:0 0 14px rgba(45,125,210,.12)}
 #sct-custom.active{border-color:var(--gate);background:rgba(233,30,140,.12);color:var(--gate-t);box-shadow:0 0 14px rgba(233,30,140,.12)}
  
+/* ── STOCK BATCH COMPLETED CARDS ── */
+.sbc-group{border:1px solid var(--b1);border-radius:8px;margin-bottom:8px;overflow:hidden;background:var(--s1)}
+.sbc-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none;transition:background .15s}
+.sbc-header:hover{background:var(--s2)}
+.sbc-arrow{font-size:10px;color:var(--t3);margin-left:auto;transition:transform .2s;flex-shrink:0}
+.sbc-group.open .sbc-arrow{transform:rotate(180deg)}
+.sbc-code{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--t1)}
+.sbc-desc{font-family:var(--mono);font-size:11px;color:var(--t3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sbc-count{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:4px;background:var(--s2);border:1px solid var(--b1);color:var(--t3);white-space:nowrap}
+.sbc-total{font-family:var(--mono);font-size:11px;color:var(--gr2);font-weight:600;white-space:nowrap}
+.sbc-body{display:none;border-top:1px solid var(--b1)}
+.sbc-group.open .sbc-body{display:block}
+.sbc-run{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.03);font-family:var(--mono);font-size:11px}
+.sbc-run:last-child{border-bottom:none}
+.sbc-run:hover{background:var(--s2)}
+.sbc-run-wt{color:var(--t3);width:80px;flex-shrink:0}
+.sbc-run-batch{color:var(--t2);width:70px;flex-shrink:0}
+.sbc-run-date{color:var(--t3);width:90px;flex-shrink:0}
+.sbc-run-so{color:var(--t2);flex:1}
+.sbc-run-qty{color:var(--t1);font-weight:600;text-align:right;width:70px;flex-shrink:0}
+.sbc-run-cost{color:var(--gr2);text-align:right;width:90px;flex-shrink:0}
+.sbc-section-label{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;padding:6px 14px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--b1)}
+ 
 /* ── STOCK PERF TABLE ── */
 .spt-wrap{margin-top:2rem}
 .spt-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
@@ -2501,11 +2524,16 @@ function deptPill(dept) {
   return '<span class="pill pill-other">' + dept + '</span>';
 }
  
+var ttBatchRuns = [];
+ 
 async function ttRender() {
   showLoader('Loading travelers...');
   await scLoadCodes();
   try {
-    ttData = await ttFetchAll();
+    var results = await Promise.all([ttFetchAll(), sbFetchAll()]);
+    ttData = results[0];
+    var allRows = results[1];
+    ttBatchRuns = allRows.filter(function(r){ return isStockCode(r.item_code); });
     hideLoader();
     ttDraw();
     ttUpdateNavBadge();
@@ -2520,13 +2548,12 @@ async function ttRender() {
     toast('Supabase table missing - see setup instructions.', 'err');
   }
 }
- 
 function ttDraw() {
   var pending   = ttData.filter(function(r){ return r.status === 'pending'; });
   var completed = ttData.filter(function(r){ return r.status === 'completed'; });
   var pendingQty = pending.reduce(function(s,r){ return s + (parseFloat(r.qty)||0); }, 0);
   document.getElementById('tt-kv1').textContent = pending.length;
-  document.getElementById('tt-kv2').textContent = completed.length;
+  document.getElementById('tt-kv2').textContent = completed.length + ttBatchRuns.length;
   document.getElementById('tt-kv3').textContent = pendingQty.toLocaleString();
   var lastComp = completed.slice().sort(function(a,b){ return (b.completed_date||'').localeCompare(a.completed_date||''); }).find(function(r){ return r.completed_batch; });
   if (lastComp) {
@@ -2542,10 +2569,86 @@ function ttDraw() {
   pl.innerHTML = pending.length
     ? pending.slice().reverse().map(ttCardHtml).join('')
     : '<div class="tt-empty">No open travelers. Click <b>+ Add Traveler</b> to log one.</div>';
+  // Manual completed travelers
   var cl = document.getElementById('tt-completed-list');
   cl.innerHTML = completed.length
     ? completed.slice().sort(function(a,b){ return (b.completed_date||'').localeCompare(a.completed_date||''); }).map(ttCardHtml).join('')
-    : '<div class="tt-empty">No completed travelers yet.</div>';
+    : '<div class="tt-empty">No manually-logged completed travelers.</div>';
+ 
+  // Stock batch runs grouped by code
+  ttDrawStockCompleted();
+}
+ 
+function ttDrawStockCompleted() {
+  var cl = document.getElementById('tt-completed-list');
+  if (!ttBatchRuns.length) return;
+ 
+  // Group by item_code
+  var byCode = {};
+  ttBatchRuns.forEach(function(r) {
+    var code = r.item_code;
+    if (!byCode[code]) {
+      var sc = scCodes.find(function(c){ return c.item_code === code; });
+      byCode[code] = {
+        code: code,
+        desc: (sc && sc.description) ? sc.description : (r.description || ''),
+        dept: (r.department || '').toLowerCase(),
+        runs: [],
+        totalQty: 0,
+        totalCost: 0
+      };
+    }
+    byCode[code].runs.push(r);
+    byCode[code].totalQty  += parseFloat(r.qty) || 0;
+    byCode[code].totalCost += parseFloat(r.extended_cost) || 0;
+  });
+ 
+  // Sort by total cost desc
+  var groups = Object.values(byCode).sort(function(a,b){ return b.totalCost - a.totalCost; });
+  var total = groups.reduce(function(s,g){ return s + g.totalCost; }, 0);
+ 
+  // Section divider
+  var divider = '<div class="sbc-section-label">Stock Code Batch Runs — ' + ttBatchRuns.length.toLocaleString() + ' entries · ' + groups.length + ' codes · $' + fmt2(total) + ' total</div>';
+ 
+  var html = divider + groups.map(function(g, gi) {
+    var deptHtml = deptPill(g.dept);
+    var runsHtml = g.runs
+      .slice().sort(function(a,b){ return (b.journal_date||'').localeCompare(a.journal_date||''); })
+      .map(function(r) {
+        var date = r.journal_date ? r.journal_date.slice(0,10) : '—';
+        var so = r.so_number || '—';
+        var wt = r.traveler_number || '—';
+        var qty = parseFloat(r.qty||0).toLocaleString();
+        var cost = '$' + fmt2(parseFloat(r.extended_cost)||0);
+        return '<div class="sbc-run">'
+          + '<span class="sbc-run-wt">#' + wt + '</span>'
+          + '<span class="sbc-run-batch">Batch ' + (r.batch||'—') + '</span>'
+          + '<span class="sbc-run-date">' + date + '</span>'
+          + '<span class="sbc-run-so">S/O ' + so + '</span>'
+          + '<span class="sbc-run-qty">' + qty + ' units</span>'
+          + '<span class="sbc-run-cost">' + cost + '</span>'
+          + '</div>';
+      }).join('');
+ 
+    return '<div class="sbc-group" id="sbc-' + gi + '">'
+      + '<div class="sbc-header" onclick="sbcToggle(' + gi + ')">'
+      + '<span class="sbc-code">' + g.code + '</span>'
+      + deptHtml
+      + '<span class="sbc-desc">' + g.desc + '</span>'
+      + '<span class="sbc-count">' + g.runs.length + ' run' + (g.runs.length !== 1 ? 's' : '') + '</span>'
+      + '<span class="sbc-total">$' + fmt2(g.totalCost) + '</span>'
+      + '<span class="sbc-arrow">▼</span>'
+      + '</div>'
+      + '<div class="sbc-body">' + runsHtml + '</div>'
+      + '</div>';
+  }).join('');
+ 
+  cl.innerHTML += html;
+}
+ 
+function sbcToggle(gi) {
+  var el = document.getElementById('sbc-' + gi);
+  el.classList.toggle('open');
 }
  
 function ttCardHtml(r) {
