@@ -938,7 +938,7 @@ async function runPDF(file) {
     const blk = lines.slice(li, Math.min(li + 8, nx));
     const wl = lines[li];
     const wtok = wl.toks.find(t => /^0{5,}\d{5,}$/.test(t)); if (!wtok) continue;
-    const code = wl.toks.find(t => t !== wtok && /^[A-Z][A-Z0-9\-]+$/.test(t) && t.length >= 3 && !/^(Yes|EA|W\/T|S\/O|AII|WO)$/.test(t)); if (!code) continue;
+    const code = wl.toks.find(t => t !== wtok && /^[A-Z0-9][A-Z0-9\-]+$/.test(t) && t.length >= 3 && !/^(Yes|EA|W\/T|S\/O|AII|WO|\d{3})$/.test(t)); if (!code) continue;
     const yi = wl.toks.indexOf('Yes'); if (yi === -1) continue;
     const an = wl.toks.slice(yi + 1).filter(t => /^[\d,]+\.?\d+$/.test(t)); if (an.length < 2) continue;
     const qty = parseFloat(an[0].replace(/,/g, ''));
