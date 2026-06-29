@@ -2250,8 +2250,8 @@ updateBadge();
     <div class="tt-col-left">
       <div class="tt-section"><span style="color:#f0a040">&#9679;</span> Pending<span class="tt-section-count" id="tt-pending-count">0</span><div class="tt-section-line"></div></div>
       <div class="tt-list" id="tt-pending-list"><div class="tt-empty">No open travelers yet. Click <b>+ Add Traveler</b> to log one.</div></div>
-      <div class="tt-section"><span style="color:#4cd68a">&#9679;</span> Completed<span class="tt-section-count" id="tt-completed-count">0</span><div class="tt-section-line"></div></div>
-      <div class="tt-list" id="tt-completed-list"><div class="tt-empty">No completed travelers yet.</div></div>
+      <div class="tt-section" style="cursor:pointer;user-select:none" onclick="(function(){var l=document.getElementById('tt-completed-list'),a=document.getElementById('tt-completed-arrow');var hidden=l.style.display==='none';l.style.display=hidden?'':'none';a.textContent=hidden?'▾':'▸';})()"><span style="color:#4cd68a">&#9679;</span> Completed<span class="tt-section-count" id="tt-completed-count">0</span><div class="tt-section-line"></div><span id="tt-completed-arrow" style="font-size:11px;color:var(--t3);margin-left:4px">▸</span></div>
+      <div class="tt-list" id="tt-completed-list" style="display:none"><div class="tt-empty">No completed travelers yet.</div></div>
     </div>
 
     <!-- RIGHT: Stock batch runs panel -->
