@@ -332,7 +332,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
 #sct-all.active{border-color:var(--gr);background:rgba(232,124,46,.12);color:var(--gr2);box-shadow:0 0 14px rgba(232,124,46,.12)}
 #sct-stock.active{border-color:var(--bl);background:rgba(45,125,210,.12);color:var(--bl-t);box-shadow:0 0 14px rgba(45,125,210,.12)}
 #sct-custom.active{border-color:var(--gate);background:rgba(233,30,140,.12);color:var(--gate-t);box-shadow:0 0 14px rgba(233,30,140,.12)}
- 
+
 /* ── TRACKER TWO-COLUMN LAYOUT ── */
 .tt-cols{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
 .tt-col-left{}
@@ -350,7 +350,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
 .tt-stock-dept-tab.on.all{color:var(--gr2);border-bottom-color:var(--gr);background:rgba(232,124,46,.05)}
 .tt-stock-body{max-height:calc(100vh - 280px);overflow-y:auto}
 @media(max-width:900px){.tt-cols{grid-template-columns:1fr}.tt-col-right{position:static}}
- 
+
 /* ── STOCK BATCH COMPLETED CARDS ── */
 .sbc-group{border:1px solid var(--b1);border-radius:8px;margin-bottom:8px;overflow:hidden;background:var(--s1)}
 .sbc-header{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none;transition:background .15s}
@@ -372,7 +372,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
 .sbc-run-qty{color:var(--t1);font-weight:600;text-align:right;flex:1}
 .sbc-run-cost{color:var(--gr2);text-align:right;width:90px;flex-shrink:0}
 .sbc-section-label{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;padding:6px 14px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--b1)}
- 
+
 /* ── STOCK PERF TABLE ── */
 .spt-wrap{margin-top:2rem}
 .spt-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
@@ -406,18 +406,18 @@ tbody td{padding:8px 12px;vertical-align:middle}
 .spt-margin-pos{color:#4cd68a;font-weight:600}
 .spt-margin-neg{color:var(--rd-t);font-weight:600}
 .spt-empty{padding:3rem;text-align:center;color:var(--t3);font-size:11px;font-family:var(--mono)}
- 
+
 /* ── TAG LIBRARY PILLS ── */
 .tl-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);color:var(--t2)}
 .tl-tag-del{background:none;border:none;color:var(--t3);cursor:pointer;font-size:11px;line-height:1;padding:0;opacity:.5}
 .tl-tag-del:hover{opacity:1;color:var(--rd-t)}
- 
+
 /* ── TAG SELECT IN TABLE ── */
 .tag-select{appearance:none;-webkit-appearance:none;background:transparent;border:none;color:var(--t3);font-size:11px;font-family:var(--mono);cursor:pointer;padding:0;width:100%;outline:none}
 .tag-select:hover{color:var(--t2)}
 .tag-select.tagged{color:var(--gr2);font-style:italic}
 .tag-select option{background:var(--s2);color:var(--t1)}
- 
+
 /* ── SALES PRICE / MARGIN ── */
 .sale-input{width:90px;padding:3px 6px;border:1px solid var(--b2);border-radius:4px;background:var(--s2);color:var(--t1);font-size:11px;font-family:var(--mono);text-align:right}
 .sale-input:focus{outline:none;border-color:var(--gr)}
@@ -534,7 +534,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
       <div id="tl-tags-list" style="display:flex;flex-wrap:wrap;gap:6px"><span style="font-size:11px;font-family:var(--mono);color:var(--t3)">No tags yet. Add one above.</span></div>
     </div>
   </div>
- 
+
   <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;flex-wrap:wrap">
     <input id="recsearch" style="flex:1;min-width:220px;padding:7px 12px;border:1px solid var(--b2);border-radius:6px;background:var(--s1);color:var(--t1);font-size:12px;font-family:var(--mono)" placeholder="search date, s/o, traveler, code, description…" oninput="recFilter()"/>
     <select id="rec-batch-sel" style="padding:6px 10px;border:1px solid var(--b2);border-radius:6px;background:var(--s1);color:var(--t1);font-size:11px;font-family:var(--mono)" onchange="recFilter()">
@@ -1702,12 +1702,12 @@ async function tagDeleteRow(travelerNum) {
   });
   if (!res.ok) throw new Error(await res.text());
 }
- 
+
 // ── TAG LIBRARY (stored in Supabase tag_library table) ───────────────────────
 var tlTags = [];
 var spCache = {}; // traveler_number -> sale_price
 var tagCache = {}; // traveler_number -> tag
- 
+
 async function tlFetchLibrary() {
   try {
     const res = await fetch(SB_URL + '/rest/v1/tag_library?select=tag&order=tag.asc', {
@@ -1733,7 +1733,7 @@ async function tlDeleteTag(tag) {
   });
   if (!res.ok) throw new Error(await res.text());
 }
- 
+
 function tlToggle() {
   const body = document.getElementById('tag-library-body');
   const arrow = document.getElementById('tl-arrow');
@@ -1957,11 +1957,11 @@ function showTopTable(which) {
  
 // ── STOCK / CUSTOM VIEW TOGGLE ────────────────────────────────────────────────
 let smView = 'all'; // 'all' | 'stock' | 'custom'
- 
+
 function isStockCode(code) {
   return scCodes.some(function(c) { return c.item_code === code; });
 }
- 
+
 function smSetView(view) {
   smView = view;
   ['all','stock','custom'].forEach(function(v) {
@@ -1974,19 +1974,19 @@ function smSetView(view) {
   updateKPIs(filtered);
   buildCh1(filtered); buildCh2(filtered); buildCh3(filtered); buildTables(filtered); fillSel(filtered);
 }
- 
+
 function smFilterView(entries) {
   if (smView === 'all') return entries;
   if (smView === 'stock') return entries.filter(function(r){ return isStockCode(r.code); });
   if (smView === 'custom') return entries.filter(function(r){ return !isStockCode(r.code); });
   return entries;
 }
- 
+
 // ── STOCK PERFORMANCE (Traveler Tracker) ─────────────────────────────────────
 var sptData = [];   // aggregated per stock code
 var sptDept = 'all';
 var sptSpCache = {}; // sale prices keyed by item code (we'll use traveler avg)
- 
+
 async function sptLoad() {
   try {
     // Fetch all records and sale prices
@@ -2022,7 +2022,7 @@ async function sptLoad() {
     document.getElementById('spt-loading').textContent = 'Error loading: ' + e.message;
   }
 }
- 
+
 function sptSetDept(dept) {
   sptDept = dept;
   ['all','wood','metal','gate','other'].forEach(function(d) {
@@ -2031,7 +2031,7 @@ function sptSetDept(dept) {
   document.getElementById('sptf-' + dept).classList.add('on');
   sptDraw();
 }
- 
+
 function sptDraw() {
   var q = (document.getElementById('spt-search').value || '').toLowerCase().trim();
   var rows = sptData.filter(function(r) {
@@ -2065,7 +2065,7 @@ function sptDraw() {
       '</tr>';
   }).join('');
 }
- 
+
 // ── SIDEBAR ───────────────────────────────────────────────────────────────────
 let sidebarOpen = false;
 let activeMonth = null; // null = all, 'YYYY-MM' = filtered
@@ -2186,8 +2186,8 @@ updateBadge();
       <button class="btn save" onclick="ttShowForm()">+ Add Traveler</button>
     </div>
   </div>
- 
- 
+
+
   <div class="tt-form-card" id="tt-form" style="display:none">
     <div class="tt-form-title" id="tt-form-title">Add Open Traveler</div>
     <div class="tt-form-grid">
@@ -2223,16 +2223,16 @@ updateBadge();
     <div class="kpi"><div class="kpi-l">Pending Qty</div><div class="kpi-v g" id="tt-kv3">0</div><div class="kpi-s">units still in production</div></div>
     <div class="kpi"><div class="kpi-l">Last Matched</div><div class="kpi-v" id="tt-kv4" style="font-size:14px">--</div><div class="kpi-s" id="tt-ks4">no batch matched yet</div></div>
   </div>
- 
+
   <div class="tt-cols">
     <!-- LEFT: Travelers -->
     <div class="tt-col-left">
       <div class="tt-section"><span style="color:#f0a040">&#9679;</span> Pending<span class="tt-section-count" id="tt-pending-count">0</span><div class="tt-section-line"></div></div>
       <div class="tt-list" id="tt-pending-list"><div class="tt-empty">No open travelers yet. Click <b>+ Add Traveler</b> to log one.</div></div>
-      <div class="tt-section"><span style="color:#4cd68a">&#9679;</span> Completed<span class="tt-section-count" id="tt-completed-count">0</span><div class="tt-section-line"></div></div>
-      <div class="tt-list" id="tt-completed-list"><div class="tt-empty">No completed travelers yet.</div></div>
+      <div class="tt-section" style="cursor:pointer;user-select:none" onclick="(function(){var l=document.getElementById('tt-completed-list'),a=document.getElementById('tt-completed-arrow');var hidden=l.style.display==='none';l.style.display=hidden?'':'none';a.textContent=hidden?'▾':'▸';})()"><span style="color:#4cd68a">&#9679;</span> Completed<span class="tt-section-count" id="tt-completed-count">0</span><div class="tt-section-line"></div><span id="tt-completed-arrow" style="font-size:11px;color:var(--t3);margin-left:4px">▸</span></div>
+      <div class="tt-list" id="tt-completed-list" style="display:none"><div class="tt-empty">No completed travelers yet.</div></div>
     </div>
- 
+
     <!-- RIGHT: Stock batch runs panel -->
     <div class="tt-col-right">
       <div class="tt-stock-panel">
@@ -2252,7 +2252,7 @@ updateBadge();
       </div>
     </div>
   </div>
- 
+
   <!-- STOCK CODE PERFORMANCE PANEL -->
   <div class="excard spt-wrap" id="spt-panel">
     <div class="spt-head">
@@ -2567,7 +2567,7 @@ function deptPill(dept) {
 }
  
 var ttBatchRuns = [];
- 
+
 async function ttRender() {
   showLoader('Loading travelers...');
   await scLoadCodes();
@@ -2616,13 +2616,13 @@ function ttDraw() {
   cl.innerHTML = completed.length
     ? completed.slice().sort(function(a,b){ return (b.completed_date||'').localeCompare(a.completed_date||''); }).map(ttCardHtml).join('')
     : '<div class="tt-empty">No manually-logged completed travelers.</div>';
- 
+
   // Stock batch runs grouped by code
   ttDrawStockCompleted();
 }
- 
+
 var sbcDept = 'all';
- 
+
 function sbcSetDept(dept) {
   sbcDept = dept;
   ['all','wood','metal','gate'].forEach(function(d) {
@@ -2633,17 +2633,17 @@ function sbcSetDept(dept) {
   document.getElementById('sbct-' + dept).classList.add('on');
   ttDrawStockCompleted();
 }
- 
+
 function ttDrawStockCompleted() {
   var panel = document.getElementById('sbc-list');
   if (!ttBatchRuns.length) {
     panel.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">No stock batch data yet.</div>';
     return;
   }
- 
+
   // Filter by dept
   var runs = sbcDept === 'all' ? ttBatchRuns : ttBatchRuns.filter(function(r){ return (r.department||'').toLowerCase() === sbcDept; });
- 
+
   // Group by item_code
   var byCode = {};
   runs.forEach(function(r) {
@@ -2661,18 +2661,18 @@ function ttDrawStockCompleted() {
     byCode[code].totalQty  += parseFloat(r.qty) || 0;
     byCode[code].totalCost += parseFloat(r.extended_cost) || 0;
   });
- 
+
   var groups = Object.values(byCode).sort(function(a,b){ return b.totalCost - a.totalCost; });
   var total = groups.reduce(function(s,g){ return s + g.totalCost; }, 0);
- 
+
   document.getElementById('sbc-panel-sub').textContent =
     runs.length.toLocaleString() + ' entries · ' + groups.length + ' codes · $' + fmt2(total);
- 
+
   if (!groups.length) {
     panel.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--t3);font-family:var(--mono);font-size:11px">No entries for this department.</div>';
     return;
   }
- 
+
   panel.innerHTML = groups.map(function(g, gi) {
     var deptHtml = deptPill(g.dept);
     var runsHtml = g.runs
@@ -2690,7 +2690,7 @@ function ttDrawStockCompleted() {
           + '<span class="sbc-run-cost">' + cost + '</span>'
           + '</div>';
       }).join('');
- 
+
     return '<div class="sbc-group" id="sbc-' + gi + '">'
       + '<div class="sbc-header" onclick="sbcToggle(' + gi + ')">'
       + '<span class="sbc-code">' + g.code + '</span>'
@@ -2704,7 +2704,7 @@ function ttDrawStockCompleted() {
       + '</div>';
   }).join('');
 }
- 
+
 function sbcToggle(gi) {
   var el = document.getElementById('sbc-' + gi);
   if (el) el.classList.toggle('open');
