@@ -425,6 +425,27 @@ tbody td{padding:8px 12px;vertical-align:middle}
 .margin-pos{color:#4cd68a;font-family:var(--mono);font-size:11px;font-weight:600}
 .margin-neg{color:var(--rd-t);font-family:var(--mono);font-size:11px;font-weight:600}
 .margin-zero{color:var(--t3);font-family:var(--mono);font-size:11px}
+/* ── STOCK REPORT MODAL ── */
+.sr-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;display:none;align-items:center;justify-content:center}
+.sr-modal-bg.open{display:flex}
+.sr-modal{background:var(--s1);border:1px solid var(--b2);border-radius:10px;width:480px;max-width:95vw;display:flex;flex-direction:column;overflow:hidden}
+.sr-modal-head{padding:14px 18px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.sr-modal-title{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--t1);text-transform:uppercase;letter-spacing:.06em}
+.sr-modal-close{background:none;border:none;color:var(--t3);cursor:pointer;font-size:20px;line-height:1;padding:2px 6px;border-radius:4px}
+.sr-modal-close:hover{color:var(--t1);background:var(--s2)}
+.sr-modal-body{padding:18px}
+.sr-mode-row{display:flex;gap:8px;margin-bottom:18px}
+.sr-mode-btn{flex:1;padding:10px 8px;border:1px solid var(--b2);border-radius:6px;background:var(--s2);color:var(--t2);font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.05em}
+.sr-mode-btn.on{border-color:var(--gr);color:var(--gr2);background:rgba(232,124,46,.1)}
+.sr-label{font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.sr-select{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:5px;color:var(--t1);font-family:var(--mono);font-size:11px;padding:8px 10px;outline:none;margin-bottom:14px}
+.sr-dept-row{display:flex;gap:6px;margin-bottom:14px}
+.sr-dept-btn{flex:1;padding:8px 6px;border:1px solid var(--b2);border-radius:5px;background:var(--s2);color:var(--t3);font-family:var(--mono);font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;text-transform:uppercase}
+.sr-dept-btn.on.wood{border-color:#27ae60;color:#27ae60;background:rgba(39,174,96,.1)}
+.sr-dept-btn.on.metal{border-color:#2d7dd2;color:#2d7dd2;background:rgba(45,125,210,.1)}
+.sr-dept-btn.on.gate{border-color:#e91e8c;color:#e91e8c;background:rgba(233,30,140,.1)}
+.sr-generate{width:100%;padding:10px;border:none;border-radius:6px;background:var(--gr);color:#fff;font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:opacity .15s}
+.sr-generate:hover{opacity:.85}
 </style>
 </head>
 <body>
@@ -2241,7 +2262,7 @@ updateBadge();
             <div class="tt-stock-panel-title">Stock Batch Runs</div>
             <div class="tt-stock-panel-sub" id="sbc-panel-sub">Loading…</div>
           </div>
-          <button onclick="printStockReport()" title="Print yearly production report" style="flex-shrink:0;background:#1e1e1e;border:1px solid var(--b1);color:var(--gr2);font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:border-color .15s" onmouseover="this.style.borderColor='var(--gr)'" onmouseout="this.style.borderColor='var(--b1)'">&#128438; PDF Report</button>
+          <button onclick="srOpenModal()" title="Print yearly production report" style="flex-shrink:0;background:#1e1e1e;border:1px solid var(--b1);color:var(--gr2);font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:border-color .15s" onmouseover="this.style.borderColor='var(--gr)'" onmouseout="this.style.borderColor='var(--b1)'">&#128438; PDF Report</button>
         </div>
         <div class="tt-stock-dept-tabs">
           <button class="tt-stock-dept-tab on all" id="sbct-all"  onclick="sbcSetDept('all')">All</button>
@@ -2289,6 +2310,41 @@ updateBadge();
 <!-- TRAVELER TRACKER JS — must be in its own script block after the DOM -->
  
 <!-- STOCK CODE MANAGER MODAL -->
+<!-- STOCK REPORT MODAL -->
+<div class="sr-modal-bg" id="sr-modal-bg" onclick="srBgClick(event)">
+  <div class="sr-modal">
+    <div class="sr-modal-head">
+      <span class="sr-modal-title">&#128438; Stock Production Report</span>
+      <button class="sr-modal-close" onclick="srCloseModal()">&#215;</button>
+    </div>
+    <div class="sr-modal-body">
+      <div class="sr-label">Report type</div>
+      <div class="sr-mode-row">
+        <button class="sr-mode-btn on" id="srm-item" onclick="srSetMode('item')">Per Item</button>
+        <button class="sr-mode-btn" id="srm-dept" onclick="srSetMode('dept')">Per Department</button>
+      </div>
+
+      <!-- Per Item: code selector -->
+      <div id="sr-item-section">
+        <div class="sr-label">Stock code</div>
+        <select class="sr-select" id="sr-code-select"></select>
+      </div>
+
+      <!-- Per Dept: dept selector -->
+      <div id="sr-dept-section" style="display:none">
+        <div class="sr-label">Department</div>
+        <div class="sr-dept-row">
+          <button class="sr-dept-btn on wood" id="srd-wood" onclick="srSetDept('wood')">&#127794; Wood</button>
+          <button class="sr-dept-btn metal" id="srd-metal" onclick="srSetDept('metal')">&#9881; Metal</button>
+          <button class="sr-dept-btn gate" id="srd-gate" onclick="srSetDept('gate')">&#128682; Gate</button>
+        </div>
+      </div>
+
+      <button class="sr-generate" onclick="srGenerate()">Generate &amp; Print</button>
+    </div>
+  </div>
+</div>
+
 <div class="sc-modal-bg" id="sc-modal-bg" onclick="scBgClick(event)">
   <div class="sc-modal">
     <div class="sc-modal-head">
@@ -2713,128 +2769,210 @@ function sbcToggle(gi) {
   if (el) el.classList.toggle('open');
 }
 
-function printStockReport() {
+// ── STOCK REPORT MODAL ──
+var srMode = 'item';
+var srDept = 'wood';
+
+function srOpenModal() {
+  // Populate code dropdown from current year runs
   var year = new Date().getFullYear();
-  var yearRuns = ttBatchRuns.filter(function(r) {
-    return r.journal_date && r.journal_date.slice(0,4) === String(year);
+  var yearRuns = ttBatchRuns.filter(function(r){ return r.journal_date && r.journal_date.slice(0,4) === String(year); });
+  var codes = [];
+  yearRuns.forEach(function(r){ if (codes.indexOf(r.item_code) === -1) codes.push(r.item_code); });
+  codes.sort();
+  var sel = document.getElementById('sr-code-select');
+  sel.innerHTML = codes.map(function(c){
+    var sc = scCodes.find(function(x){ return x.item_code === c; });
+    var label = sc && sc.description ? c + ' — ' + sc.description : c;
+    return '<option value="'+c+'">'+label+'</option>';
+  }).join('');
+  document.getElementById('sr-modal-bg').classList.add('open');
+}
+
+function srCloseModal() {
+  document.getElementById('sr-modal-bg').classList.remove('open');
+}
+
+function srBgClick(e) {
+  if (e.target === document.getElementById('sr-modal-bg')) srCloseModal();
+}
+
+function srSetMode(mode) {
+  srMode = mode;
+  document.getElementById('srm-item').classList.toggle('on', mode === 'item');
+  document.getElementById('srm-dept').classList.toggle('on', mode === 'dept');
+  document.getElementById('sr-item-section').style.display = mode === 'item' ? '' : 'none';
+  document.getElementById('sr-dept-section').style.display = mode === 'dept' ? '' : 'none';
+}
+
+function srSetDept(dept) {
+  srDept = dept;
+  ['wood','metal','gate'].forEach(function(d) {
+    var btn = document.getElementById('srd-' + d);
+    btn.className = 'sr-dept-btn ' + d + (d === dept ? ' on' : '');
   });
+}
 
-  if (!yearRuns.length) {
-    alert('No stock batch data for ' + year + ' yet.');
-    return;
-  }
+function srGenerate() {
+  srCloseModal();
+  var year = new Date().getFullYear();
+  var yearRuns = ttBatchRuns.filter(function(r){ return r.journal_date && r.journal_date.slice(0,4) === String(year); });
 
-  // Monthly qty totals
-  var monthQty = new Array(12).fill(0);
+  if (!yearRuns.length) { alert('No stock batch data for ' + year + ' yet.'); return; }
+
   var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  yearRuns.forEach(function(r) {
-    var m = parseInt(r.journal_date.slice(5,7), 10) - 1;
-    monthQty[m] += parseFloat(r.qty) || 0;
-  });
 
-  // Per-code breakdown
-  var byCode = {};
-  yearRuns.forEach(function(r) {
-    var c = r.item_code;
-    if (!byCode[c]) {
-      var sc = scCodes.find(function(x){ return x.item_code === c; });
-      byCode[c] = { code: c, desc: (sc && sc.description) || r.description || '', dept: (r.department||'').toLowerCase(), runs: 0, qty: 0, cost: 0 };
-    }
-    byCode[c].runs++;
-    byCode[c].qty  += parseFloat(r.qty) || 0;
-    byCode[c].cost += parseFloat(r.extended_cost) || 0;
-  });
-  var groups = Object.values(byCode).sort(function(a,b){ return b.qty - a.qty; });
+  if (srMode === 'item') {
+    var code = document.getElementById('sr-code-select').value;
+    if (!code) return;
+    var filtered = yearRuns.filter(function(r){ return r.item_code === code; });
+    if (!filtered.length) { alert('No data for ' + code + ' in ' + year + '.'); return; }
 
-  var totalQty  = yearRuns.reduce(function(s,r){ return s + (parseFloat(r.qty)||0); }, 0);
-  var totalCost = yearRuns.reduce(function(s,r){ return s + (parseFloat(r.extended_cost)||0); }, 0);
-  var totalRuns = yearRuns.length;
+    var sc = scCodes.find(function(x){ return x.item_code === code; });
+    var desc = (sc && sc.description) || (filtered[0] && filtered[0].description) || '';
+    var dept = (filtered[0] && filtered[0].department || '').toLowerCase();
+    var accentColor = dept === 'wood' ? '#27ae60' : dept === 'metal' ? '#2d7dd2' : dept === 'gate' ? '#e91e8c' : '#e87c2e';
 
-  // SVG line chart
-  var W=700, H=220, PL=55, PR=20, PT=20, PB=40;
+    var monthQty  = new Array(12).fill(0);
+    var monthRuns = new Array(12).fill(0);
+    var monthCost = new Array(12).fill(0);
+    filtered.forEach(function(r) {
+      var m = parseInt(r.journal_date.slice(5,7), 10) - 1;
+      monthQty[m]  += parseFloat(r.qty) || 0;
+      monthRuns[m] += 1;
+      monthCost[m] += parseFloat(r.extended_cost) || 0;
+    });
+
+    var totalQty  = filtered.reduce(function(s,r){ return s + (parseFloat(r.qty)||0); }, 0);
+    var totalCost = filtered.reduce(function(s,r){ return s + (parseFloat(r.extended_cost)||0); }, 0);
+    var activeMonths = monthQty.filter(function(q){ return q > 0; }).length;
+
+    var chartSvg = srBuildChart(monthQty, monthNames, accentColor);
+
+    var tableRows = monthNames.map(function(mn, i) {
+      var bg = i%2===0 ? '#1a1a1a' : '#161616';
+      var hasData = monthQty[i] > 0;
+      return '<tr style="background:'+bg+';opacity:'+(hasData?1:.45)+'">'
+        + '<td style="padding:6px 10px;color:#888">'+mn+'</td>'
+        + '<td style="padding:6px 10px;text-align:right;color:'+accentColor+';font-weight:600">'+(hasData ? Math.round(monthQty[i]).toLocaleString() : '—')+'</td>'
+        + '<td style="padding:6px 10px;text-align:right;color:#aaa">'+(hasData ? monthRuns[i] : '—')+'</td>'
+        + '<td style="padding:6px 10px;text-align:right;color:#aaa">'+(hasData ? '$'+monthCost[i].toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—')+'</td>'
+        + '</tr>';
+    }).join('');
+
+    var subtitle = code + (desc ? ' \u2014 ' + desc : '') + ' &nbsp;\u00b7&nbsp; ' + (dept ? dept.charAt(0).toUpperCase()+dept.slice(1) : '');
+    srOpenWindow(year, subtitle, accentColor,
+      totalQty, filtered.length, activeMonths, totalCost,
+      chartSvg,
+      'Units Produced by Month \u2014 ' + code,
+      '<table><thead><tr><th>Month</th><th style="text-align:right">Qty Produced</th><th style="text-align:right">Runs</th><th style="text-align:right">Cost</th></tr></thead><tbody>'+tableRows+'</tbody></table>'
+    );
+
+  } else {
+    // Per Department
+    var filtered = yearRuns.filter(function(r){ return (r.department||'').toLowerCase() === srDept; });
+    if (!filtered.length) { alert('No data for ' + srDept + ' in ' + year + '.'); return; }
+
+    var deptLabel = srDept.charAt(0).toUpperCase() + srDept.slice(1);
+    var accentColor = srDept === 'wood' ? '#27ae60' : srDept === 'metal' ? '#2d7dd2' : '#e91e8c';
+
+    var monthQty  = new Array(12).fill(0);
+    var monthRuns = new Array(12).fill(0);
+    var monthCost = new Array(12).fill(0);
+    filtered.forEach(function(r) {
+      var m = parseInt(r.journal_date.slice(5,7), 10) - 1;
+      monthQty[m]  += parseFloat(r.qty) || 0;
+      monthRuns[m] += 1;
+      monthCost[m] += parseFloat(r.extended_cost) || 0;
+    });
+
+    var totalQty  = filtered.reduce(function(s,r){ return s + (parseFloat(r.qty)||0); }, 0);
+    var totalCost = filtered.reduce(function(s,r){ return s + (parseFloat(r.extended_cost)||0); }, 0);
+    var activeMonths = monthQty.filter(function(q){ return q > 0; }).length;
+
+    var chartSvg = srBuildChart(monthQty, monthNames, accentColor);
+
+    var tableRows = monthNames.map(function(mn, i) {
+      var bg = i%2===0 ? '#1a1a1a' : '#161616';
+      var hasData = monthQty[i] > 0;
+      return '<tr style="background:'+bg+';opacity:'+(hasData?1:.45)+'">'
+        + '<td style="padding:6px 10px;color:#888">'+mn+'</td>'
+        + '<td style="padding:6px 10px;text-align:right;color:'+accentColor+';font-weight:600">'+(hasData ? Math.round(monthQty[i]).toLocaleString() : '—')+'</td>'
+        + '<td style="padding:6px 10px;text-align:right;color:#aaa">'+(hasData ? monthRuns[i] : '—')+'</td>'
+        + '<td style="padding:6px 10px;text-align:right;color:#aaa">'+(hasData ? '$'+monthCost[i].toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—')+'</td>'
+        + '</tr>';
+    }).join('');
+
+    srOpenWindow(year, deptLabel + ' Department', accentColor,
+      totalQty, filtered.length, activeMonths, totalCost,
+      chartSvg,
+      'Units Produced by Month \u2014 ' + deptLabel,
+      '<table><thead><tr><th>Month</th><th style="text-align:right">Qty Produced</th><th style="text-align:right">Runs</th><th style="text-align:right">Cost</th></tr></thead><tbody>'+tableRows+'</tbody></table>'
+    );
+  }
+}
+
+function srBuildChart(monthQty, monthNames, color) {
+  var W=700, H=220, PL=60, PR=20, PT=20, PB=40;
   var cw=W-PL-PR, ch=H-PT-PB;
   var maxQ = Math.max.apply(null, monthQty) || 1;
   var pts = monthQty.map(function(q,i){ return [(PL + i*(cw/11)), (PT + ch - (q/maxQ)*ch)]; });
   var polyline = pts.map(function(p){ return p[0]+','+p[1]; }).join(' ');
-  var filled = 'M'+pts[0][0]+','+pts[0][1] + pts.slice(1).map(function(p){ return 'L'+p[0]+','+p[1]; }).join('') + 'L'+pts[pts.length-1][0]+','+(PT+ch) + 'L'+pts[0][0]+','+(PT+ch)+'Z';
-
-  var gridLines = [0.25,0.5,0.75,1].map(function(f) {
-    var y = PT + ch - f*ch;
-    var label = Math.round(maxQ*f).toLocaleString();
+  var filled = 'M'+pts[0][0]+','+pts[0][1] + pts.slice(1).map(function(p){ return 'L'+p[0]+','+p[1]; }).join('') + 'L'+pts[11][0]+','+(PT+ch)+'L'+pts[0][0]+','+(PT+ch)+'Z';
+  var gridLines = [0.25,0.5,0.75,1].map(function(f){
+    var y=PT+ch-f*ch, lbl=Math.round(maxQ*f).toLocaleString();
     return '<line x1="'+PL+'" y1="'+y+'" x2="'+(W-PR)+'" y2="'+y+'" stroke="#333" stroke-width="1"/>'
-         + '<text x="'+(PL-6)+'" y="'+(y+4)+'" fill="#888" font-size="9" text-anchor="end">'+label+'</text>';
+         + '<text x="'+(PL-6)+'" y="'+(y+4)+'" fill="#777" font-size="9" text-anchor="end">'+lbl+'</text>';
   }).join('');
-
   var dots = pts.map(function(p,i){
-    return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3" fill="#e87c2e"/>'
-         + (monthQty[i]>0 ? '<text x="'+p[0]+'" y="'+(p[1]-8)+'" fill="#e87c2e" font-size="9" text-anchor="middle">'+Math.round(monthQty[i]).toLocaleString()+'</text>' : '');
+    return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3" fill="'+color+'"/>'
+         + (monthQty[i]>0 ? '<text x="'+p[0]+'" y="'+(p[1]-8)+'" fill="'+color+'" font-size="9" text-anchor="middle">'+Math.round(monthQty[i]).toLocaleString()+'</text>' : '');
   }).join('');
   var xLabels = monthNames.map(function(n,i){
-    return '<text x="'+(PL+i*(cw/11))+'" y="'+(H-PT+5)+'" fill="#888" font-size="9" text-anchor="middle">'+n+'</text>';
+    return '<text x="'+(PL+i*(cw/11))+'" y="'+(H-PT+5)+'" fill="#777" font-size="9" text-anchor="middle">'+n+'</text>';
   }).join('');
-
-  var chartSvg = '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+W+'px;height:auto;display:block;margin:0 auto">'
+  return '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+W+'px;height:auto;display:block;margin:0 auto">'
     + '<rect width="'+W+'" height="'+H+'" fill="#111"/>'
     + gridLines
     + '<line x1="'+PL+'" y1="'+PT+'" x2="'+PL+'" y2="'+(PT+ch)+'" stroke="#444" stroke-width="1"/>'
     + '<line x1="'+PL+'" y1="'+(PT+ch)+'" x2="'+(W-PR)+'" y2="'+(PT+ch)+'" stroke="#444" stroke-width="1"/>'
-    + '<path d="'+filled+'" fill="rgba(232,124,46,0.12)"/>'
-    + '<polyline points="'+polyline+'" fill="none" stroke="#e87c2e" stroke-width="2"/>'
-    + dots + xLabels
-    + '</svg>';
+    + '<path d="'+filled+'" fill="'+color+'22"/>'
+    + '<polyline points="'+polyline+'" fill="none" stroke="'+color+'" stroke-width="2"/>'
+    + dots + xLabels + '</svg>';
+}
 
-  function deptColor(d) {
-    if (d==='wood')  return '#27ae60';
-    if (d==='metal') return '#2d7dd2';
-    if (d==='gate')  return '#e91e8c';
-    return '#888';
-  }
-
-  var tableRows = groups.map(function(g, i) {
-    var bg = i%2===0 ? '#1a1a1a' : '#161616';
-    return '<tr style="background:'+bg+'">'
-      + '<td style="padding:6px 10px;font-weight:600;color:#ddd">'+g.code+'</td>'
-      + '<td style="padding:6px 10px"><span style="background:'+deptColor(g.dept)+'22;color:'+deptColor(g.dept)+';border:1px solid '+deptColor(g.dept)+'55;border-radius:3px;padding:1px 6px;font-size:10px;text-transform:capitalize">'+g.dept+'</span></td>'
-      + '<td style="padding:6px 10px;color:#aaa;max-width:220px">'+g.desc+'</td>'
-      + '<td style="padding:6px 10px;text-align:right;color:#aaa">'+g.runs+'</td>'
-      + '<td style="padding:6px 10px;text-align:right;color:#e87c2e;font-weight:600">'+Math.round(g.qty).toLocaleString()+'</td>'
-      + '<td style="padding:6px 10px;text-align:right;color:#aaa">$'+g.cost.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</td>'
-      + '</tr>';
-  }).join('');
-
+function srOpenWindow(year, subtitle, accentColor, totalQty, totalRuns, activeMonths, totalCost, chartSvg, chartTitle, tableHtml) {
   var now = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>AII Stock Report '+year+'</title>'
     + '<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#111;color:#ccc;font-family:"Courier New",monospace;font-size:12px;padding:32px}'
-    + 'h1{color:#e87c2e;font-size:20px;letter-spacing:.04em;margin-bottom:4px}'
-    + '.sub{color:#666;font-size:11px;margin-bottom:28px}'
-    + '.kpi-row{display:flex;gap:16px;margin-bottom:28px}'
-    + '.kpi{flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:14px 18px}'
-    + '.kpi-val{font-size:22px;font-weight:700;color:#e87c2e}'
-    + '.kpi-lbl{font-size:10px;color:#666;margin-top:3px;text-transform:uppercase;letter-spacing:.06em}'
-    + 'h2{font-size:13px;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}'
+    + 'h1{color:'+accentColor+';font-size:20px;letter-spacing:.04em;margin-bottom:4px}'
+    + '.sub{color:#555;font-size:11px;margin-bottom:6px}.gen{color:#444;font-size:10px;margin-bottom:28px}'
+    + '.kpi-row{display:flex;gap:14px;margin-bottom:28px}'
+    + '.kpi{flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:12px 16px}'
+    + '.kpi-val{font-size:20px;font-weight:700;color:'+accentColor+'}'
+    + '.kpi-lbl{font-size:10px;color:#555;margin-top:3px;text-transform:uppercase;letter-spacing:.06em}'
+    + 'h2{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}'
     + '.chart-wrap{background:#111;border:1px solid #222;border-radius:6px;padding:16px;margin-bottom:28px}'
     + 'table{width:100%;border-collapse:collapse;font-size:11px}'
-    + 'thead th{background:#1e1e1e;color:#666;text-transform:uppercase;letter-spacing:.06em;padding:7px 10px;text-align:left;border-bottom:1px solid #2a2a2a}'
-    + 'thead th:last-child,thead th:nth-child(4),thead th:nth-child(5){text-align:right}'
-    + '.footer{margin-top:24px;font-size:10px;color:#444;text-align:right}'
-    + '@media print{body{padding:16px}}'
-    + '</style></head><body>'
+    + 'thead th{background:#1e1e1e;color:#555;text-transform:uppercase;letter-spacing:.06em;padding:7px 10px;text-align:left;border-bottom:1px solid #252525}'
+    + 'thead th:not(:first-child){text-align:right}'
+    + '.footer{margin-top:24px;font-size:10px;color:#333;text-align:right}'
+    + '@media print{body{padding:16px}}</style></head><body>'
     + '<h1>AII \u2014 Stock Production Report</h1>'
-    + '<div class="sub">Year: '+year+' &nbsp;\u00b7&nbsp; Generated: '+now+'</div>'
+    + '<div class="sub">'+subtitle+'</div>'
+    + '<div class="gen">Year: '+year+' &nbsp;\u00b7&nbsp; Generated: '+now+'</div>'
     + '<div class="kpi-row">'
     + '<div class="kpi"><div class="kpi-val">'+Math.round(totalQty).toLocaleString()+'</div><div class="kpi-lbl">Total Units Produced</div></div>'
-    + '<div class="kpi"><div class="kpi-val">'+totalRuns.toLocaleString()+'</div><div class="kpi-lbl">Total Batch Runs</div></div>'
-    + '<div class="kpi"><div class="kpi-val">'+groups.length+'</div><div class="kpi-lbl">Stock Codes Run</div></div>'
+    + '<div class="kpi"><div class="kpi-val">'+totalRuns+'</div><div class="kpi-lbl">Total Batch Runs</div></div>'
+    + '<div class="kpi"><div class="kpi-val">'+activeMonths+' / 12</div><div class="kpi-lbl">Active Months</div></div>'
     + '<div class="kpi"><div class="kpi-val">$'+totalCost.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</div><div class="kpi-lbl">Total Production Cost</div></div>'
     + '</div>'
-    + '<h2>Units Produced by Month \u2014 '+year+'</h2>'
+    + '<h2>'+chartTitle+'</h2>'
     + '<div class="chart-wrap">'+chartSvg+'</div>'
-    + '<h2>Breakdown by Stock Code</h2>'
-    + '<table><thead><tr><th>Code</th><th>Dept</th><th>Description</th><th>Runs</th><th>Total Qty</th><th>Total Cost</th></tr></thead><tbody>'+tableRows+'</tbody></table>'
+    + '<h2>Monthly Breakdown \u2014 12 Periods</h2>'
+    + tableHtml
     + '<div class="footer">Amendola Industries Inc. &nbsp;\u00b7&nbsp; Work Ticket Traveler Tracker</div>'
     + '</body></html>';
-
   var w = window.open('','_blank');
   w.document.write(html);
   w.document.close();
